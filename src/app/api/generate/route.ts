@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import fs from 'fs/promises';
-import path from 'path';
+import { exampleHtml } from '@/lib/exampleHtml';
 
 export const maxDuration = 60; // Set max duration for Vercel/Next.js
 
@@ -16,9 +15,6 @@ export async function POST(req: NextRequest) {
     if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json({ error: 'GEMINI_API_KEY is not configured' }, { status: 500 });
     }
-
-    const examplePath = path.join(process.cwd(), 'src', 'example.html');
-    const exampleHtml = await fs.readFile(examplePath, 'utf8');
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
