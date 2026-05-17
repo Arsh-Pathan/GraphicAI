@@ -163,7 +163,7 @@ ENGINEERING CURVES RULES
 • Label key points (Focus F, Vertex V, Center C, Directrix D-D') using \`label()\` and \`dot()\`.
 • Add dimensions for the primary parameters (e.g., Major Axis, Minor Axis, base, height, distance of focus from directrix).
 • For 3D generated curves (like a Helix on a cylinder/cone), plot the 2D projection (elevation and/or plan).
-• **Auto-scale carefully**: Curves can have large spans (e.g., an involute has a length related to circumference πD). Estimate the expected bounding box of the full curve and use a generous scale that fills at least 60-70% of the canvas without clipping. Avoid hardcoded scale caps like `4.0` if they cause small drawings on large screens.
+• **Auto-scale carefully**: Curves can have large spans (e.g., an involute has a length related to circumference πD). Estimate the expected bounding box of the full curve and use a generous scale that fills at least 60-70% of the canvas without clipping. Avoid hardcoded scale caps like \`4.0\` if they cause small drawings on large screens.
 
 ══════════════════════════════════════════════════════════════════════════
 DEVELOPMENT RULES
