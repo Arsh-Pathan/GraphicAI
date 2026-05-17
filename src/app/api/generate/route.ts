@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { exampleHtml } from "@/lib/exampleHtml";
 import { lineExampleHtml } from "@/lib/lineExampleHtml";
 import { curveExampleHtml } from "@/lib/curveExampleHtml";
+import { developmentExampleHtml } from "@/lib/developmentExampleHtml";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -54,6 +55,12 @@ Decide which family the user's problem belongs to before drafting:
     → Use the CURVE EXEMPLAR. Single centered plot. Auto-scaled grid or
       bounding box. Focus-directrix, rectangle, or locus methods.
 
+  • DEVELOPMENT OF SURFACES — unrolling the lateral surface of a 3D solid
+    (prism, pyramid, cylinder, cone) resting on HP or VP.
+    → Use the DEVELOPMENT EXEMPLAR. Two parts: Orthographic projection (TV
+      and FV) on the left, and the unrolled Development surface on the right.
+      Projectors connect the FV to the Development.
+
 If the prose mentions "lamina", "plate", "plane", "polygon", named shapes
 resting on a corner/edge/side, or two surface inclinations → LAMINA.
 If the prose mentions "line", endpoints labelled by single letters (AB,
@@ -62,6 +69,8 @@ N° with XY/HP", "TV makes N° with XY/VP", "above HP", "in front of VP",
 "in HP", "in VP" → LINE.
 If the prose mentions "ellipse", "parabola", "hyperbola", "cycloid",
 "involute", "helix", "spiral", "focus-directrix", "eccentricity" → CURVES.
+If the prose mentions "development", "lateral surface", "unroll", "cylinder",
+"cone", "prism", "pyramid", "stretch out" → DEVELOPMENT.
 
 ══════════════════════════════════════════════════════════════════════════
 ENGINEERING GRAPHICS STANDARDS (BOTH FAMILIES)
@@ -154,6 +163,43 @@ ENGINEERING CURVES RULES
 • Label key points (Focus F, Vertex V, Center C, Directrix D-D') using \`label()\` and \`dot()\`.
 • Add dimensions for the primary parameters (e.g., Major Axis, Minor Axis, base, height, distance of focus from directrix).
 • For 3D generated curves (like a Helix on a cylinder/cone), plot the 2D projection (elevation and/or plan).
+
+══════════════════════════════════════════════════════════════════════════
+DEVELOPMENT RULES
+══════════════════════════════════════════════════════════════════════════
+Layout:
+• Left side: Top View (TV) BELOW XY + Front View (FV) ABOVE XY.
+• Right side: Unrolled Development of the lateral surface.
+• Draw horizontal dashed projectors from the FV top/bottom edges across to the Development.
+• Vertical dashed projectors connect TV vertices upward through XY to FV.
+
+PRISMS (hexagonal, pentagonal, square, triangular):
+• TV = regular polygon below XY, oriented per the problem ("edge parallel to VP", "edge equally inclined to VP", etc.).
+• FV = rectangle above XY. Width = projected span of TV. Height = axis height. Inner vertical lines at each projected TV vertex.
+• Development = rectangle strip to the right. Height = axis height. Width = perimeter (N × edge). Divided into N equal vertical rectangles.
+• Bottom labels: a, b, c, …, a (wrapping back to start). Top labels: 1, 2, 3, …, 1.
+• Show perimeter dimension below the development (e.g., "25 × 6 = 150 mm").
+
+CYLINDERS:
+• TV = circle below XY. Divide into 12 equal parts.
+• FV = rectangle above XY. Height = axis height. Width = diameter.
+• Development = rectangle strip. Height = axis height. Width = πD (circumference). Divided into 12 equal strips.
+• Show circumference dimension (e.g., "πD = π × 40 = 125.6 mm").
+
+PYRAMIDS (pentagonal, square, triangular):
+• TV = regular polygon below XY with apex 'o' at center. Draw ALL slant edges from each vertex to center.
+• FV = isosceles triangle above XY. Base on XY, apex at height = axis height. Show the True Length of the slant edge: TL = √(height² + R²) where R = circumradius.
+• Development = radial FAN of N isosceles triangles to the right, all sharing apex 'o'. Radius of each = True Length of slant edge. Arc each base edge using compass radius = base edge. Labels: a, b, c, …, a around the arc, apex = o.
+• In the FV, clearly mark and dimension the True Length (slant edge) with a small 'TL' label.
+
+CONES:
+• TV = circle below XY with center 'o'. Show diameter dimension.
+• FV = isosceles triangle above XY. Base on XY, apex at axis height. Slant height R = √(height² + radius²).
+• Development = circular arc sector. Radius = slant height R. Arc angle θ = (base radius / slant height) × 360°. Show θ calculation: θ = πD / (2R) × (360/π) = (r/R) × 360°.
+• Label: apex 'o' at center, base generators around the arc.
+
+Development color: Use COLOR_DEV = '#38a169' (green) for the development outline.
+Use COLOR_FV = '#e53e3e' for FV, COLOR_TV = '#3182ce' for TV.
 
 ══════════════════════════════════════════════════════════════════════════
 ANNOTATIONS — MANDATORY ON EVERY FIGURE
@@ -312,7 +358,7 @@ export async function POST(req: NextRequest) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const userMessage = `Below are THREE canonical exemplars. Pick the one whose family matches the user's prose (lamina, line, or curve) and match its CSS, canvas scale handling, projector logic, vertex labelling, annotation style (arcs, dimensions, locus arcs), and steps card EXACTLY. Only the problem-specific geometry, the problem statement text, and the steps content should change. Do NOT include any multi-problem dropdown — solve only the requested problem.
+  const userMessage = `Below are FOUR canonical exemplars. Pick the one whose family matches the user's prose (lamina, line, curve, or development) and match its CSS, canvas scale handling, projector logic, vertex labelling, annotation style (arcs, dimensions, locus arcs), and steps card EXACTLY. Only the problem-specific geometry, the problem statement text, and the steps content should change. Do NOT include any multi-problem dropdown — solve only the requested problem.
 
 ═══ EXEMPLAR A · LAMINA / PLANE FIGURES ═══
 ${exampleHtml}
@@ -325,6 +371,10 @@ ${lineExampleHtml}
 ═══ EXEMPLAR C · ENGINEERING CURVES ═══
 ${curveExampleHtml}
 ═══ END EXEMPLAR C ═══
+
+═══ EXEMPLAR D · DEVELOPMENT OF SURFACES ═══
+${developmentExampleHtml}
+═══ END EXEMPLAR D ═══
 
 Now produce the complete single-file HTML solution for ONLY this problem:
 
