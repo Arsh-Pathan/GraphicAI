@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { exampleHtml } from "@/lib/exampleHtml";
 import { lineExampleHtml } from "@/lib/lineExampleHtml";
+import { curveExampleHtml } from "@/lib/curveExampleHtml";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -48,12 +49,19 @@ Decide which family the user's problem belongs to before drafting:
       stages). FV above XY, TV below XY, sharing vertical projectors.
       Locus arcs swung in place on the same plate. NO rotation matrices.
 
+  • ENGINEERING CURVES — geometric curves (ellipse, parabola, hyperbola,
+    cycloid, epicycloid, hypocycloid, involute, spiral, helix).
+    → Use the CURVE EXEMPLAR. Single centered plot. Auto-scaled grid or
+      bounding box. Focus-directrix, rectangle, or locus methods.
+
 If the prose mentions "lamina", "plate", "plane", "polygon", named shapes
 resting on a corner/edge/side, or two surface inclinations → LAMINA.
 If the prose mentions "line", endpoints labelled by single letters (AB,
 MN, PQ), "true length", "projector distance", "apparent angle", "FV makes
 N° with XY/HP", "TV makes N° with XY/VP", "above HP", "in front of VP",
 "in HP", "in VP" → LINE.
+If the prose mentions "ellipse", "parabola", "hyperbola", "cycloid",
+"involute", "helix", "spiral", "focus-directrix", "eccentricity" → CURVES.
 
 ══════════════════════════════════════════════════════════════════════════
 ENGINEERING GRAPHICS STANDARDS (BOTH FAMILIES)
@@ -136,6 +144,16 @@ LINE PROJECTION RULES
 • When "FV and TV are contained by an auxiliary plane perpendicular to
   both reference planes", the line is a profile line; FV length and TV
   length are perpendicular to XY.
+
+══════════════════════════════════════════════════════════════════════════
+ENGINEERING CURVES RULES
+══════════════════════════════════════════════════════════════════════════
+• Center the curve symmetrically on the canvas.
+• Use mathematical plotting loop (e.g. \`for (let theta = 0; theta <= max; theta += 0.05)\`) to draw the smooth curve path in \`COLOR_CURVE\`.
+• Draw construction points/lines (focus, directrix, rectangles, dividing rays) in \`COLOR_CONSTRUCT\`.
+• Label key points (Focus F, Vertex V, Center C, Directrix D-D') using \`label()\` and \`dot()\`.
+• Add dimensions for the primary parameters (e.g., Major Axis, Minor Axis, base, height, distance of focus from directrix).
+• For 3D generated curves (like a Helix on a cylinder/cone), plot the 2D projection (elevation and/or plan).
 
 ══════════════════════════════════════════════════════════════════════════
 ANNOTATIONS — MANDATORY ON EVERY FIGURE
@@ -294,7 +312,7 @@ export async function POST(req: NextRequest) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const userMessage = `Below are TWO canonical exemplars. Pick the one whose family matches the user's prose (lamina vs line) and match its CSS, canvas scale handling, projector logic, vertex labelling, annotation style (arcs, dimensions, locus arcs), and steps card EXACTLY. Only the problem-specific geometry, the problem statement text, and the steps content should change. Do NOT include any multi-problem dropdown — solve only the requested problem.
+  const userMessage = `Below are THREE canonical exemplars. Pick the one whose family matches the user's prose (lamina, line, or curve) and match its CSS, canvas scale handling, projector logic, vertex labelling, annotation style (arcs, dimensions, locus arcs), and steps card EXACTLY. Only the problem-specific geometry, the problem statement text, and the steps content should change. Do NOT include any multi-problem dropdown — solve only the requested problem.
 
 ═══ EXEMPLAR A · LAMINA / PLANE FIGURES ═══
 ${exampleHtml}
@@ -303,6 +321,10 @@ ${exampleHtml}
 ═══ EXEMPLAR B · LINE PROJECTION ═══
 ${lineExampleHtml}
 ═══ END EXEMPLAR B ═══
+
+═══ EXEMPLAR C · ENGINEERING CURVES ═══
+${curveExampleHtml}
+═══ END EXEMPLAR C ═══
 
 Now produce the complete single-file HTML solution for ONLY this problem:
 
