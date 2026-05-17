@@ -146,15 +146,22 @@ function tiltedLabel(text, x1, y1, x2, y2, color, size, weight, above = true) {
   ctx.fillText(text, 0, above ? -4 : 4);
   ctx.restore();
 }
-function angleLabel(text, cx, cy, radius, startAngle, endAngle, color) {
-  const midAngle = (startAngle + endAngle) / 2;
-  const tx = cx + radius * Math.cos(midAngle);
-  const ty = cy + radius * Math.sin(midAngle);
-  ctx.fillStyle = color;
+function angleLabel(text, cx, cy, radius, startAngle, endAngle, color, bias = 0.5) {
+  const angle = startAngle + (endAngle - startAngle) * bias;
+  const tx = cx + radius * Math.cos(angle);
+  const ty = cy + radius * Math.sin(angle);
+  
+  ctx.save();
   ctx.font = '12px "Segoe UI", sans-serif';
+  const tw = ctx.measureText(text).width;
+  ctx.fillStyle = '#fafafa';
+  ctx.fillRect(tx - tw/2 - 2, ty - 7, tw + 4, 14);
+  
+  ctx.fillStyle = color;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(text, tx, ty);
+  ctx.restore();
 }
 function arc(cx,cy,r,a1,a2,color,ccw){
   ctx.beginPath();
@@ -279,11 +286,11 @@ function render(){
 
   // Apparent angle α at m' (FV)
   angleArc(M_fv.x, M_fv.y, 30, -alpha, 0, COLOR_FV);
-  angleLabel(alphaDeg+"° (α)", M_fv.x, M_fv.y, 45, -alpha, 0, COLOR_FV);
+  angleLabel(alphaDeg+"° (α)", M_fv.x, M_fv.y, 45, -alpha, 0, COLOR_FV, 0.8);
 
   // Apparent angle β at m (TV)
   angleArc(M_tv.x, M_tv.y, 30, 0, beta, COLOR_TV);
-  angleLabel(betaDeg+"° (β)", M_tv.x, M_tv.y, 45, 0, beta, COLOR_TV);
+  angleLabel(betaDeg+"° (β)", M_tv.x, M_tv.y, 45, 0, beta, COLOR_TV, 0.2);
 
   // Dimensions
   const projectorDimOffset = Math.max(mInFrontVP, nInFrontVP) * scale + 45;
@@ -322,10 +329,10 @@ function render(){
   
   // True inclination arcs (θ and φ)
   angleArc(M_fv.x, M_fv.y, 45, -thetaHP, 0, COLOR_TL);
-  angleLabel("θ", M_fv.x, M_fv.y, 58, -thetaHP, 0, COLOR_TL);
+  angleLabel("θ", M_fv.x, M_fv.y, 58, -thetaHP, 0, COLOR_TL, 0.2);
   
   angleArc(M_tv.x, M_tv.y, 45, 0, phiVP, COLOR_TL);
-  angleLabel("φ", M_tv.x, M_tv.y, 58, 0, phiVP, COLOR_TL);
+  angleLabel("φ", M_tv.x, M_tv.y, 58, 0, phiVP, COLOR_TL, 0.8);
 }
 
 function drawXY(ox, oy, w, title){
