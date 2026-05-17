@@ -166,12 +166,12 @@ General:
 
 ELLIPSE BY RECTANGLE METHOD:
 • Draw bounding rectangle (major axis × minor axis). Center = O.
-• Divide semi-major axis (half of long edge) into N equal parts (typically 5). Number 1,2,3,… from O.
-• Divide semi-minor axis (half of short edge) into N equal parts. Number 1,2,3,… from O.
-• From end A of major axis, draw lines to each division on the near short edge.
-• From end C of minor axis, draw lines to same-numbered divisions on the near long edge.
-• Intersections of corresponding numbered lines = points on the ellipse.
-• Repeat for all 4 quadrants. Join points with smooth curve.
+• Divide semi-major axis OA (horizontal centerline from O toward A) into N equal parts (typically 5). Number 1,2,3,… from O.
+• Mark the SAME N divisions on the top edge of the rectangle from C toward the corner.
+• From end A of major axis, draw lines to each division on the TOP EDGE of the rectangle (diagonal lines from A to the edge).
+• From end C of minor axis, draw lines to the same-numbered divisions on the SEMI-MAJOR AXIS (horizontal centerline, diagonal lines from C down to the axis).
+• Intersections of corresponding numbered lines (line-i from A ∩ line-i from C) = points on the ellipse.
+• Repeat for all 4 quadrants (using B, D for the other halves). Join points with smooth curve.
 
 PARABOLA BY RECTANGLE METHOD:
 • Draw a rectangle with width = base and height = axis height.

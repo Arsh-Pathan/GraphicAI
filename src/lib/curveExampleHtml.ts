@@ -147,91 +147,90 @@ function render() {
   line(rectLeft - 20, cy, rectRight + 20, cy, COLOR_AXIS, 1.2, [10, 4, 2, 4]);
   line(cx, rectTop - 20, cx, rectBot + 20, COLOR_AXIS, 1.2, [10, 4, 2, 4]);
 
-  /* ─── Division marks on semi-major (top edge, left half: from center to left) ─ */
-  // Top edge: from cx going left to rectLeft → N divisions
-  // Right side top edge: from cx going right to rectRight → N divisions (mirror)
-  // Left edge: from cy going up to rectTop → N divisions (semi-minor on short side)
-  // Right edge: from cy going up to rectTop → N divisions (mirror)
+  /* ─── Division marks ──────────────────────────────────────────── */
+  // Divisions on the SEMI-MAJOR AXIS (horizontal centerline, O toward A/B)
+  // AND on the TOP/BOTTOM EDGES (from C/D toward corners)
+  // Both sets have the SAME x-coordinates.
+  const dxMajor = a / N;
+  const dyMinor = b / N;
 
-  // Division spacing
-  const dxMajor = a / N; // spacing along semi-major
-  const dyMinor = b / N; // spacing along semi-minor
-
-  // Mark divisions on top edge (semi-major, left half)
   for (let i = 1; i < N; i++) {
-    const x = cx - i * dxMajor;
-    // Small tick on top edge
-    line(x, rectTop - 3, x, rectTop + 3, COLOR_TEXT, 0.8);
-    label(String(i), x - 3, rectTop - 8, COLOR_TEXT, 10, 'normal');
-    // Mirror on right
-    const xr = cx + i * dxMajor;
-    line(xr, rectTop - 3, xr, rectTop + 3, COLOR_TEXT, 0.8);
-    label(String(i), xr - 3, rectTop - 8, COLOR_TEXT, 10, 'normal');
-    // Bottom edge mirrors
-    line(x, rectBot - 3, x, rectBot + 3, COLOR_TEXT, 0.8);
-    label(String(i), x - 3, rectBot + 15, COLOR_TEXT, 10, 'normal');
-    line(xr, rectBot - 3, xr, rectBot + 3, COLOR_TEXT, 0.8);
-    label(String(i), xr - 3, rectBot + 15, COLOR_TEXT, 10, 'normal');
+    const xL = cx - i * dxMajor; // left of center
+    const xR = cx + i * dxMajor; // right of center
+
+    // Ticks on the horizontal centerline (semi-major axis)
+    line(xL, cy - 3, xL, cy + 3, COLOR_TEXT, 0.8);
+    line(xR, cy - 3, xR, cy + 3, COLOR_TEXT, 0.8);
+
+    // Ticks on top edge
+    line(xL, rectTop - 3, xL, rectTop + 3, COLOR_TEXT, 0.8);
+    label(String(i), xL - 3, rectTop - 8, COLOR_TEXT, 10, 'normal');
+    line(xR, rectTop - 3, xR, rectTop + 3, COLOR_TEXT, 0.8);
+    label(String(i), xR - 3, rectTop - 8, COLOR_TEXT, 10, 'normal');
+
+    // Ticks on bottom edge
+    line(xL, rectBot - 3, xL, rectBot + 3, COLOR_TEXT, 0.8);
+    label(String(i), xL - 3, rectBot + 15, COLOR_TEXT, 10, 'normal');
+    line(xR, rectBot - 3, xR, rectBot + 3, COLOR_TEXT, 0.8);
+    label(String(i), xR - 3, rectBot + 15, COLOR_TEXT, 10, 'normal');
+
+    // Number labels on the centerline (near the axis, small)
+    label(String(i), xL - 3, cy + 14, COLOR_TEXT, 9, 'normal');
+    label(String(i), xR - 3, cy + 14, COLOR_TEXT, 9, 'normal');
   }
 
-  // Mark divisions on left edge (semi-minor, top half)
+  // Divisions on left/right edges (semi-minor)
   for (let i = 1; i < N; i++) {
-    const y = cy - i * dyMinor;
-    line(rectLeft - 3, y, rectLeft + 3, y, COLOR_TEXT, 0.8);
-    label(String(i), rectLeft - 14, y + 4, COLOR_TEXT, 10, 'normal');
-    // Mirror on right edge
-    line(rectRight - 3, y, rectRight + 3, y, COLOR_TEXT, 0.8);
-    label(String(i), rectRight + 5, y + 4, COLOR_TEXT, 10, 'normal');
-    // Bottom half mirrors
-    const yb = cy + i * dyMinor;
-    line(rectLeft - 3, yb, rectLeft + 3, yb, COLOR_TEXT, 0.8);
-    label(String(i), rectLeft - 14, yb + 4, COLOR_TEXT, 10, 'normal');
-    line(rectRight - 3, yb, rectRight + 3, yb, COLOR_TEXT, 0.8);
-    label(String(i), rectRight + 5, yb + 4, COLOR_TEXT, 10, 'normal');
+    const yU = cy - i * dyMinor;
+    const yD = cy + i * dyMinor;
+    line(rectLeft - 3, yU, rectLeft + 3, yU, COLOR_TEXT, 0.8);
+    label(String(i), rectLeft - 14, yU + 4, COLOR_TEXT, 10, 'normal');
+    line(rectRight - 3, yU, rectRight + 3, yU, COLOR_TEXT, 0.8);
+    label(String(i), rectRight + 5, yU + 4, COLOR_TEXT, 10, 'normal');
+    line(rectLeft - 3, yD, rectLeft + 3, yD, COLOR_TEXT, 0.8);
+    label(String(i), rectLeft - 14, yD + 4, COLOR_TEXT, 10, 'normal');
+    line(rectRight - 3, yD, rectRight + 3, yD, COLOR_TEXT, 0.8);
+    label(String(i), rectRight + 5, yD + 4, COLOR_TEXT, 10, 'normal');
   }
 
   /* ─── Construction Lines & Intersection Points (all 4 quadrants) ── */
-  // For each quadrant, we draw two sets of lines and find intersections.
+  // CORRECT RECTANGLE METHOD (matching hand-drawn reference):
   //
-  // TOP-LEFT QUADRANT:
-  //   Set A: from END of major axis on the LEFT (rectLeft, cy)
-  //          to each division on the LEFT short edge TOP half (rectLeft, cy - i*dyMinor)
-  //   Set C: from END of minor axis on the TOP (cx, rectTop)
-  //          to each division on the TOP long edge LEFT half (cx - i*dxMajor, rectTop)
-  //   Intersection of line-i from A and line-i from C = point on ellipse.
+  // For TOP-LEFT quadrant:
+  //   Set 1: from A (left end of major axis) → to division i on the TOP EDGE
+  //          Target: (cx - i*dxMajor, rectTop)
+  //   Set 2: from C (top end of minor axis) → to division i on the SEMI-MAJOR AXIS
+  //          Target: (cx - i*dxMajor, cy)  ← on the horizontal centerline!
+  //   The intersection of line-i from set 1 and line-i from set 2 = point on ellipse.
 
   const quadrants = [
-    { ax: rectLeft, ay: cy, cx_: cx, cy_: rectTop, edgeXdir: -1, edgeYdir: -1 }, // Top-Left
-    { ax: rectRight, ay: cy, cx_: cx, cy_: rectTop, edgeXdir: 1, edgeYdir: -1 },  // Top-Right
-    { ax: rectRight, ay: cy, cx_: cx, cy_: rectBot, edgeXdir: 1, edgeYdir: 1 },   // Bottom-Right
-    { ax: rectLeft, ay: cy, cx_: cx, cy_: rectBot, edgeXdir: -1, edgeYdir: 1 },    // Bottom-Left
+    { ax: rectLeft, ay: cy, cx_: cx, cy_: rectTop, xdir: -1 }, // Top-Left
+    { ax: rectRight, ay: cy, cx_: cx, cy_: rectTop, xdir: 1 },  // Top-Right
+    { ax: rectRight, ay: cy, cx_: cx, cy_: rectBot, xdir: 1 },   // Bottom-Right
+    { ax: rectLeft, ay: cy, cx_: cx, cy_: rectBot, xdir: -1 },    // Bottom-Left
   ];
 
-  const allPts = []; // collect all ellipse construction points
+  const allPts = [];
 
   quadrants.forEach(q => {
     for (let i = 1; i < N; i++) {
-      // Division i on the LONG edge (top or bottom edge of rectangle)
-      const longEdgeX = cx + q.edgeXdir * i * dxMajor;
-      const longEdgeY = q.cy_; // same y as the C-end
+      // Division i on the EDGE (top or bottom edge of rectangle)
+      const edgeX = cx + q.xdir * i * dxMajor;
+      const edgeY = q.cy_; // y of the near edge (top or bottom)
 
-      // Division i on the SHORT edge (left or right edge of rectangle)
-      const shortEdgeX = q.ax; // same x as the A-end
-      const shortEdgeY = cy + q.edgeYdir * i * dyMinor;
+      // Division i on the AXIS (horizontal centerline)
+      const axisX = cx + q.xdir * i * dxMajor; // same x as edge division
+      const axisY = cy; // on the horizontal centerline
 
-      // Set 1: from A (end of major axis) → to division on the LONG edge
-      // These lines fan diagonally from A to the top/bottom edge divisions
-      line(q.ax, q.ay, longEdgeX, longEdgeY, COLOR_CONSTRUCT, 0.6);
+      // Set 1: from A (end of major axis) to edge division
+      line(q.ax, q.ay, edgeX, edgeY, COLOR_CONSTRUCT, 0.6);
 
-      // Set 2: from C (end of minor axis) → to division on the SHORT edge
-      // These lines fan diagonally from C to the left/right edge divisions
-      line(q.cx_, q.cy_, shortEdgeX, shortEdgeY, COLOR_CONSTRUCT, 0.6);
+      // Set 2: from C/D (end of minor axis) to axis division
+      line(q.cx_, q.cy_, axisX, axisY, COLOR_CONSTRUCT, 0.6);
 
-      // Find intersection of these two lines → point on the ellipse
-      // Line 1: from (q.ax, q.ay) to (longEdgeX, longEdgeY)
-      // Line 2: from (q.cx_, q.cy_) to (shortEdgeX, shortEdgeY)
-      const x1 = q.ax, y1 = q.ay, x2 = longEdgeX, y2 = longEdgeY;
-      const x3 = q.cx_, y3 = q.cy_, x4 = shortEdgeX, y4 = shortEdgeY;
+      // Find intersection
+      const x1 = q.ax, y1 = q.ay, x2 = edgeX, y2 = edgeY;
+      const x3 = q.cx_, y3 = q.cy_, x4 = axisX, y4 = axisY;
 
       const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
       if (Math.abs(denom) > 0.001) {
@@ -277,13 +276,12 @@ function render() {
   document.getElementById('steps-list').innerHTML = \`
     <li><strong>Step 1:</strong> Draw the major axis AB = 120 mm horizontally and minor axis CD = 70 mm vertically, intersecting at center O.</li>
     <li><strong>Step 2:</strong> Construct the bounding rectangle through the endpoints A, B, C, D.</li>
-    <li><strong>Step 3:</strong> Divide the semi-major axis (top edge from O to left rectangle corner) into \${N} equal parts. Number them 1, 2, 3, … from O outward.</li>
-    <li><strong>Step 4:</strong> Divide the semi-minor axis (left edge from O to top rectangle corner) into \${N} equal parts. Number them 1, 2, 3, … from O outward.</li>
-    <li><strong>Step 5:</strong> From point A (end of major axis), draw straight lines to each numbered division on the near short edge (left edge, top half).</li>
-    <li><strong>Step 6:</strong> From point C (end of minor axis), draw straight lines to the same-numbered divisions on the near long edge (top edge, left half).</li>
-    <li><strong>Step 7:</strong> The intersection of line-1 from A with line-1 from C gives point P1 on the ellipse. Similarly for P2, P3, P4.</li>
-    <li><strong>Step 8:</strong> Repeat for all four quadrants by symmetry.</li>
-    <li><strong>Step 9:</strong> Join all intersection points and the axis endpoints A, B, C, D with a smooth freehand curve to complete the ellipse.</li>
+    <li><strong>Step 3:</strong> Divide the semi-major axis OA (horizontal centerline from O toward A) into \${N} equal parts. Number them 1, 2, 3, … from O outward. Mark the SAME divisions on the top edge from C toward the corner.</li>
+    <li><strong>Step 4:</strong> From point A (end of major axis), draw straight lines to each numbered division on the TOP EDGE of the rectangle.</li>
+    <li><strong>Step 5:</strong> From point C (end of minor axis), draw straight lines to the same-numbered divisions on the SEMI-MAJOR AXIS (horizontal centerline).</li>
+    <li><strong>Step 6:</strong> The intersection of line-1 from A with line-1 from C gives a point on the ellipse. Similarly for lines 2, 3, 4.</li>
+    <li><strong>Step 7:</strong> Repeat for all four quadrants by symmetry (using B and D for the other quadrants).</li>
+    <li><strong>Step 8:</strong> Join all intersection points and the axis endpoints A, B, C, D with a smooth freehand curve to complete the ellipse.</li>
   \`;
 
   document.getElementById('results').innerHTML = \`
