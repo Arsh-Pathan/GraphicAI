@@ -151,7 +151,11 @@ Every plate, regardless of family, MUST carry these annotations:
      depths in front of VP, true length). Do NOT draw dimension lines for derived/found lengths on the diagram; leave them in the results card.
   4. **Line Labels**: Label the Front View line as "EL" (Elevation Length), the Top View line as "PL" (Plan Length), and True Length lines as "TL". Use the \`tiltedLabel(text, x1, y1, x2, y2, color, size, weight)\` function so the text aligns perfectly with the line. If EL, PL, or TL lengths are explicitly given in the problem, append the value (e.g., "EL = 60 mm"). If they are found/calculated, just write "EL", "PL", or "TL".
   4. **Projector dashes** connecting matching endpoints between FV and TV.
-  5. **Angles**: Draw a SINGLE angle arc per view to represent both true and apparent inclinations. Place the true angle label (θ or φ) in the inner wedge (from 0 to the true angle). Place the apparent angle label (α or β) in the outer wedge (from the true angle to the apparent angle). Be extremely careful with negative angles (when lines go UP): the inner wedge is from 0 to -trueAngle, and outer is from -trueAngle to -apparentAngle.
+  5. **Angles**: Draw a SINGLE angle arc per view to represent both true and apparent inclinations. Place the true angle label (θ or φ) in the inner wedge (from 0 to the true angle). Place the apparent angle label (α or β) in the outer wedge (from the true angle to the apparent angle).
+     CRITICAL: The sign of the angles passed to angleArc and angleLabel MUST match the visual direction of the line!
+     - If the line goes UP on the canvas (end.y < start.y), you MUST use NEGATIVE angles (e.g. -beta, -phi) for both angleArc and angleLabel.
+     - If the line goes DOWN on the canvas (end.y > start.y), you MUST use POSITIVE angles (e.g. beta, phi) for both angleArc and angleLabel.
+     (In the exemplar, FV goes UP so it uses -alpha, TV goes DOWN so it uses beta. Adjust signs based on your specific geometry!)
   6. **Locus arcs** (dashed, grey) showing every rotation used to find TL
      or any auxiliary length.
   6. **Locus labels** ("locus of b'", "locus of b") next to the

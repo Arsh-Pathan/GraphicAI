@@ -285,6 +285,7 @@ function render(){
   tiltedLabel("PL", M_tv.x, M_tv.y, N_tv.x, N_tv.y, COLOR_TV, 12, 'normal', false);
 
   // Angles at m' (FV) - single arc for both θ and α
+  // NOTE: In FV the lines go UP (N_fv.y < M_fv.y), so we MUST use NEGATIVE angles (-alpha, -thetaHP)
   angleArc(M_fv.x, M_fv.y, 40, -alpha, 0, COLOR_DIM);
   // True angle (θ) is smaller, so it occupies the inner wedge from 0 to -thetaHP
   angleLabel("θ", M_fv.x, M_fv.y, 48, -thetaHP, 0, COLOR_TL);
@@ -292,6 +293,8 @@ function render(){
   angleLabel(alphaDeg+"° (α)", M_fv.x, M_fv.y, 48, -alpha, -thetaHP, COLOR_FV);
 
   // Angles at m (TV) - single arc for both φ and β
+  // NOTE: In TV the lines go DOWN (N_tv.y > M_tv.y), so we MUST use POSITIVE angles (beta, phiVP)
+  // If your generated lines go UP, you MUST use NEGATIVE angles (e.g. -beta, -phiVP) instead!
   angleArc(M_tv.x, M_tv.y, 40, 0, beta, COLOR_DIM);
   // True angle (φ) is smaller, so it occupies the inner wedge from 0 to phiVP
   angleLabel("φ", M_tv.x, M_tv.y, 48, 0, phiVP, COLOR_TL);
