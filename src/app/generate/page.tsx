@@ -5,9 +5,10 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SAMPLE_PROMPTS = [
-  "A thin square plate of side 40 mm stands on one of its corners on HP; opposite corner is raised so one diagonal is twice the other and is parallel to both reference planes.",
   "Hexagonal lamina of side 25 mm rests on a corner on HP, plane @ 45° to HP, diagonal through the resting corner @ 30° to VP.",
   "Circular lamina of 50 mm diameter rests on HP with one diameter inclined at 30° to VP and 45° to HP.",
+  "Point M of line MN is 20 mm above HP and is in VP. Its FV and TV make 40° and 45° with XY respectively. Projector distance between end points is 100 mm. Draw the projections; find true inclinations.",
+  "Line AB is 75 mm long. End B is 15 mm above HP and 50 mm in front of VP. End A is in VP and the sum of inclinations with HP and VP is 90°. Draw projections; find inclinations with HP and VP.",
 ];
 
 const USER_KEY_STORAGE = "graphicai.geminiKey";

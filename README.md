@@ -142,7 +142,9 @@ deliberate.
 
 ## What it can solve (today)
 
-The exemplar covers the eight canonical lamina problems:
+### Plane laminae (Exemplar A)
+
+Three-stage solutions with rotation matrices and apparent-angle math:
 
 |   | Lamina               | Resting | Constraints                              |
 |---|----------------------|---------|------------------------------------------|
@@ -155,8 +157,27 @@ The exemplar covers the eight canonical lamina problems:
 | 7 | Hexagonal lamina     | Corner  | 45° to HP, diagonal 30° to VP           |
 | 8 | Circular lamina      | Edge    | Diameter 30° to VP, 45° to HP           |
 
-Gemini extends from these by analogy — most plane-figure projection problems
-work. Solids (prisms, pyramids, cones, frustums) are next on the bench.
+### Line projections (Exemplar B)
+
+Two-stage construction with locus-arc rotation to find true length and true
+inclinations. Every plate carries endpoint dots (`a, b, a', b'`), apparent
+angle arcs (α, β), projector dashes between FV and TV, dimension lines with
+tick endcaps for every linear measure, locus arcs swung from each endpoint,
+and a results row reporting TL, θ_HP and φ_VP to one decimal place.
+
+Handles all the canonical variants:
+
+- Given α (FV ∠ XY), β (TV ∠ XY), projector distance → find TL, θ, φ.
+- Given one true inclination + one apparent angle → find the other.
+- Endpoints "in HP" (sit on XY in FV) and "in VP" (sit on XY in TV).
+- "Sum of inclinations = 90°" — profile-plane lines.
+- "FV and TV contained by an auxiliary plane perpendicular to both" —
+  profile lines drawn perpendicular to XY.
+- Mixed given-coordinate problems (heights, depths, projector distance).
+
+Gemini extends from these by analogy — most plane-figure and straight-line
+projection problems work. Solids (prisms, pyramids, cones, frustums) are
+next on the bench.
 
 ---
 

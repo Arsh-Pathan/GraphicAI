@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { exampleHtml } from "@/lib/exampleHtml";
+import { lineExampleHtml } from "@/lib/lineExampleHtml";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -31,53 +32,149 @@ NON-NEGOTIABLE OUTPUT RULES
 4. The page must render on its own in any modern browser, with no build step.
 
 ══════════════════════════════════════════════════════════════════════════
-ENGINEERING GRAPHICS STANDARDS (FIRST ANGLE PROJECTION)
+CLASSIFY THE PROBLEM FIRST
+══════════════════════════════════════════════════════════════════════════
+Decide which family the user's problem belongs to before drafting:
+
+  • PLANE / LAMINA — a 2D figure (square, triangle, pentagon, hexagon,
+    circle, rectangle, rhombus) resting in/on HP or VP at some inclination.
+    → Use the LAMINA EXEMPLAR. Three stages: True Shape → HP Inclination →
+      VP Inclination. Rotation matrices. Polygon outlines for FV and TV.
+
+  • LINE PROJECTION — a straight line segment AB / MN with endpoints
+    constrained by heights above HP, distances in front of VP, apparent
+    angles in FV/TV, projector distances, true length, true inclinations.
+    → Use the LINE EXEMPLAR. Two stages: Given Projections → True Length
+      by Rotation. NO rotation matrices — just point projections and
+      locus-arc constructions.
+
+If the prose mentions "lamina", "plate", "plane", "polygon", named shapes
+resting on a corner/edge/side, or two surface inclinations → LAMINA.
+If the prose mentions "line", endpoints labelled by single letters (AB,
+MN, PQ), "true length", "projector distance", "apparent angle", "FV makes
+N° with XY/HP", "TV makes N° with XY/VP", "above HP", "in front of VP",
+"in HP", "in VP" → LINE.
+
+══════════════════════════════════════════════════════════════════════════
+ENGINEERING GRAPHICS STANDARDS (BOTH FAMILIES)
 ══════════════════════════════════════════════════════════════════════════
 • XY line is the reference. **VP above XY, HP below XY** (first-angle convention).
-• **Front View (FV)** in CRIMSON (#e53e3e) — appears ABOVE XY (lifted by +z).
-• **Top View (TV)** in BLUEPRINT BLUE (#3182ce) — appears BELOW XY (offset by +y).
-• **Projectors / locus lines** in muted grey (#a0aec0), 1px, dashed when transferring between stages.
-• Vertices labelled with lowercase letters: \`a\` for TV points, \`a'\` for FV points. Place labels with small offset from the dot, never overlapping the polygon edge.
-• Three stages, drawn left-to-right:
-   – Stage 1: True Shape (lamina parallel to HP, resting on the named element)
-   – Stage 2: HP Inclination (lamina rotated about an axis in HP, so the surface makes the stated angle with HP)
-   – Stage 3: VP Inclination (the previous stage rotated about an axis in VP, so the named line makes the stated angle with VP)
-• When BOTH HP and VP inclinations are given for a line/diagonal, use the **apparent angle** formula:  β = arctan( tan(θ_true) / cos(φ_HP) )  where φ_HP is the surface angle to HP. State the computed β in the steps card.
-• When the problem fixes a foreshortened length (e.g. "diagonal twice the other", "top view appears as a square"), derive the HP angle from the cos⁻¹ / sin⁻¹ ratio rather than guessing.
-
-══════════════════════════════════════════════════════════════════════════
-MATHEMATICAL SOLVER REQUIREMENTS
-══════════════════════════════════════════════════════════════════════════
-• Build the lamina as a JS array of vertex objects: \`{x, y, label}\` in mm, in true shape lying in the XY plane.
-• Compute rotations explicitly. Two rotations max:
-    – HP rotation about the Y axis:   x' = x·cos(θ),   z' = x·sin(θ)
-    – VP rotation about the Z axis:   x'' = x'·cos(β) − y·sin(β),   y'' = x'·sin(β) + y·cos(β)
-• Auto-compute global Y offset so the lowest projected point sits ~30mm below XY (no view ever drifts off-canvas).
-• Auto-compute bounding boxes per stage and lay them out with a 120px horizontal gutter, centred horizontally on the canvas.
-• Use \`window.devicePixelRatio\` scaling on the canvas so the drawing is crisp on retina displays.
-• If the lamina is a circle, approximate it with 12 equispaced points and label \`a\`…\`l\`.
-
-══════════════════════════════════════════════════════════════════════════
-UI / LAYOUT (match the provided exemplar exactly)
-══════════════════════════════════════════════════════════════════════════
-• Background \`#f8f9fa\`, container card white with soft shadow, 1050px max width.
-• Heading: "Engineering Graphics: Projection Solver".
-• Problem statement in a blue-left-border callout (\`.problem-desc\`).
-• Canvas 100% wide, 550px tall, light grey fill.
-• Legend row beneath canvas: FV (red box), TV (blue box), Projectors / Locus (grey rule).
-• Steps card titled "Calculated Orientations & Output Values" with an ordered list — at minimum: True Shape, HP Tilt (with computed θ in degrees), VP Tilt (with computed β if applicable). Each step uses <strong> for the label.
-• Do NOT include the multi-problem dropdown the exemplar uses — the file should solve and render ONLY the problem the user asked for. Hard-code the single problem.
+• **Front View (FV)** in CRIMSON #e53e3e — appears ABOVE XY (height z).
+• **Top View (TV)** in BLUEPRINT BLUE #3182ce — appears BELOW XY (depth y).
+• **True Length / construction result** in MOSS GREEN #38a169.
+• **Projectors / locus arcs** in muted grey #a0aec0, dashed.
+• **Dimensions** in #718096 with tick endcaps and a centred label.
 • System font stack: \`'Segoe UI', Tahoma, Geneva, Verdana, sans-serif\`.
+• Background #f8f9fa, container card white with soft shadow, 1050px max width.
+• Canvas 100% wide, ~560px tall, devicePixelRatio scaling.
+
+══════════════════════════════════════════════════════════════════════════
+LAMINA RULES
+══════════════════════════════════════════════════════════════════════════
+• Vertices labelled lowercase: \`a\` for TV, \`a'\` for FV. Labels offset
+  from the dot, never overlapping edges.
+• Three stages left-to-right: True Shape → HP Inclination → VP Inclination.
+• Build vertex array \`{x, y, label}\` in mm, in true shape lying in XY plane.
+• HP rotation about Y axis: x' = x·cos(θ),  z' = x·sin(θ).
+• VP rotation about Z axis: x'' = x'·cos(β) − y·sin(β),  y'' = x'·sin(β) + y·cos(β).
+• Apparent-angle formula: β = arctan( tan(θ_true) / cos(φ_HP) ).
+• When a foreshortened length is given ("diagonal twice the other", "TV
+  appears as a square"), derive θ from the cos⁻¹ / sin⁻¹ ratio.
+• Circle → 12 equispaced points labelled a…l.
+
+══════════════════════════════════════════════════════════════════════════
+LINE PROJECTION RULES
+══════════════════════════════════════════════════════════════════════════
+• Endpoints labelled lowercase: \`a, b\` (TV), \`a', b'\` (FV).
+  Construction landing points: \`a₁, b₁, a₂', b₂'\` etc.
+• Two stages left-to-right: Stage 1 = Given Projections; Stage 2 = True
+  Length by Rotation.
+• Coordinates: x along XY, y = distance in front of VP (TV down), z =
+  height above HP (FV up). FV plots (x, −z), TV plots (x, +y), with the
+  XY line as y=0 / z=0.
+• Key derived quantities:
+    – ΔX = projector distance L.
+    – ΔY = (depth_B − depth_A), ΔZ = (height_B − height_A).
+    – FV length = √(L² + ΔZ²),    TV length = √(L² + ΔY²).
+    – TRUE LENGTH TL = √(L² + ΔY² + ΔZ²).
+    – tan α = ΔZ / L  (FV apparent angle with XY).
+    – tan β = ΔY / L  (TV apparent angle with XY).
+    – sin θ_HP = ΔZ / TL,    sin φ_VP = ΔY / TL.
+    – tan α = tan θ_HP / cos φ_VP,  tan β = tan φ_VP / cos θ_HP.
+• Endpoint placement rules:
+    – "in HP"  → endpoint sits ON XY in the FV (height = 0).
+    – "in VP"  → endpoint sits ON XY in the TV (depth = 0).
+    – "above HP by h" → endpoint at height h in FV.
+    – "in front of VP by d" → endpoint at depth d in TV.
+• Construction by rotation (the classic four-arc method):
+    – Swing the TV \`ab\` about \`a\` down to a horizontal locus → mark a₁.
+      Project a₁ up. Connect to b's FV-height → that line is TL. The
+      angle it makes with the horizontal is **θ_HP**.
+    – Swing the FV \`a'b'\` about \`a'\` down to a horizontal locus → mark
+      b₂'. Project down to b's TV-depth. Connect to a' → that line is
+      TL. The angle with horizontal is **φ_VP**.
+    – Both methods must produce the same TL. State this verification.
+• When the problem gives "FV makes α with XY/HP and TV makes β with XY/VP
+  and projector distance L", set ΔZ = L·tan α and ΔY = L·tan β directly.
+• When the problem gives true inclinations (θ_HP and/or φ_VP), construct
+  by drawing the true line first at the true angle, then projecting.
+• When "sum of inclinations = 90°", the line lies in a profile plane;
+  TL appears full-size as the slanted line in either auxiliary view.
+• When "FV and TV are contained by an auxiliary plane perpendicular to
+  both reference planes", the line is a profile line; FV length and TV
+  length are perpendicular to XY.
+
+══════════════════════════════════════════════════════════════════════════
+ANNOTATIONS — MANDATORY ON EVERY FIGURE
+══════════════════════════════════════════════════════════════════════════
+Every plate, regardless of family, MUST carry these annotations:
+
+  1. **Endpoint dots** with **lowercase labels** placed with a small offset.
+  2. **Apparent angle arcs** with degree labels (α, β, θ, φ as appropriate)
+     drawn as small circular arcs at the vertex where the angle opens.
+  3. **Dimension lines** with tick endcaps and a centred mm label for
+     every given linear measure (projector distance, heights above HP,
+     depths in front of VP, true length).
+  4. **Projector dashes** connecting matching endpoints between FV and TV.
+  5. **Locus arcs** (dashed, grey) showing every rotation used to find TL
+     or any auxiliary length.
+  6. **Stage titles** beneath each stage ("Stage 1 · Given projections",
+     "Stage 2 · True length by rotation", etc.).
+  7. **XY line** in every stage, with X / Y endpoint labels and VP/HP
+     reminders at the left.
+
+══════════════════════════════════════════════════════════════════════════
+UI / LAYOUT
+══════════════════════════════════════════════════════════════════════════
+• Heading: "Engineering Graphics: Projection Solver" (lamina) or
+  "Engineering Graphics: Line Projection Solver" (line).
+• Problem statement in a blue-left-border callout (\`.problem-desc\`).
+• Legend row beneath canvas: FV (red), TV (blue), TL (green, for line
+  problems), Projector / Locus (grey rule).
+• Steps card titled "Construction Steps & Computed Values" (line) or
+  "Calculated Orientations & Output Values" (lamina). Ordered list of
+  plain-English construction moves, each step using <strong> for its
+  label. Each step describes WHAT to draw and WHY.
+• For line problems, end the steps card with a row of "result pills"
+  showing TL, θ_HP, φ_VP (and any other requested quantity) to one
+  decimal place.
+• Do NOT include the multi-problem dropdown — solve ONLY the user's
+  problem. Hard-code it.
 
 ══════════════════════════════════════════════════════════════════════════
 SELF-CHECK BEFORE EMITTING
 ══════════════════════════════════════════════════════════════════════════
 Before writing the closing </html>, silently verify:
-  ☑ All three stages draw without overlapping.
-  ☑ Every labelled vertex in TV has a matching primed label in FV directly above it on the same projector.
-  ☑ HP angle and VP angle in the steps card match what the JS actually rotates by.
-  ☑ No undefined variables, no missing closing braces, no JSON parse calls.
-  ☑ Canvas resize handler is wired so the figure recentres on window resize.
+  ☑ Correct family chosen (LAMINA vs LINE) for the user's prose.
+  ☑ All stages fit on the canvas without overlapping (auto-scale if needed).
+  ☑ Every endpoint in TV has a primed counterpart on the same projector
+    in FV (line problems).
+  ☑ All apparent-angle arcs and dimension labels match what the JS
+    actually computes (no drift between drawing and numbers).
+  ☑ Locus-arc construction produces the same TL from both views.
+  ☑ Steps in the card match the construction performed by the canvas.
+  ☑ No undefined variables, no missing braces, no JSON.parse calls.
+  ☑ Canvas resize handler is wired.
 
 If any check fails, FIX it before emitting. Do not emit broken HTML.`;
 
@@ -173,13 +270,17 @@ export async function POST(req: NextRequest) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const userMessage = `Below is a CANONICAL exemplar of the expected single-file HTML output. Study its CSS, canvas scale handling, projector logic, vertex labelling, and steps card. Match this structure EXACTLY — only the problem-specific geometry, the problem statement text, and the steps content should change.
+  const userMessage = `Below are TWO canonical exemplars. Pick the one whose family matches the user's prose (lamina vs line) and match its CSS, canvas scale handling, projector logic, vertex labelling, annotation style (arcs, dimensions, locus arcs), and steps card EXACTLY. Only the problem-specific geometry, the problem statement text, and the steps content should change. Do NOT include any multi-problem dropdown — solve only the requested problem.
 
-═══ BEGIN EXEMPLAR ═══
+═══ EXEMPLAR A · LAMINA / PLANE FIGURES ═══
 ${exampleHtml}
-═══ END EXEMPLAR ═══
+═══ END EXEMPLAR A ═══
 
-Now produce the complete single-file HTML solution for ONLY this problem (do not include the problem dropdown — render this one problem directly):
+═══ EXEMPLAR B · LINE PROJECTION ═══
+${lineExampleHtml}
+═══ END EXEMPLAR B ═══
+
+Now produce the complete single-file HTML solution for ONLY this problem:
 
 "${prompt}"`;
 
@@ -196,7 +297,7 @@ Now produce the complete single-file HTML solution for ONLY this problem (do not
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 0.15,
-        maxOutputTokens: 32768,
+        maxOutputTokens: 65536,
       },
     });
   }
