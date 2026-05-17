@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GraphicAI · pure mark (no wordmark)
+  Used as favicon / app icon. Trims the wordmark and titleblock strip
+  from graphicai-mark.svg so the figure reads cleanly at 16×16.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img"
+     aria-label="GraphicAI">
+  <title>GraphicAI</title>
+
+  <rect width="64" height="64" rx="12" fill="#f1ece2"/>
+
+  <!-- XY rule -->
+  <line x1="8" y1="34" x2="56" y2="34" stroke="#1a1816" stroke-width="1.8"/>
+
+  <!-- Crimson FV triangle (lifted plate seen edge-on) -->
+  <path d="M18 34 L32 12 L46 34" fill="none" stroke="#b8341c"
+        stroke-width="2.2" stroke-linejoin="miter"/>
+
+  <!-- Blueprint TV rhombus -->
+  <path d="M18 34 L32 42 L46 34 L32 52 Z" fill="none" stroke="#1e5fa8"
+        stroke-width="2.2" stroke-linejoin="miter"/>
+
+  <!-- Projector dash from FV apex through XY into TV -->
+  <line x1="32" y1="12" x2="32" y2="42" stroke="#1a1816"
+        stroke-opacity="0.55" stroke-width="0.9" stroke-dasharray="2 1.6"/>
+
+  <!-- Apex stamp -->
+  <circle cx="32" cy="12" r="2.4" fill="#1a1816"/>
+  <circle cx="32" cy="12" r="0.9" fill="#f1ece2"/>
+
+  <!-- Vertex dots -->
+  <circle cx="18" cy="34" r="1.6" fill="#1a1816"/>
+  <circle cx="46" cy="34" r="1.6" fill="#1a1816"/>
+  <circle cx="32" cy="42" r="1.6" fill="#1e5fa8"/>
+  <circle cx="32" cy="52" r="1.6" fill="#1e5fa8"/>
+</svg>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GraphicAI · Folio Mark
+  ─────────────────────────────────────────────────────────────────────
+  A drafted monogram. The compass needle traces the first-angle XY line;
+  a square plate stands on one corner (HP), its diagonal lifted to make
+  the canonical 60° tilt that opens the whole study. The needle's apex
+  doubles as the dot of an "i" — for GraphicAI, and for "ink".
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img"
+     aria-label="GraphicAI">
+  <title>GraphicAI</title>
+
+  <defs>
+    <!-- Faint paper grain layered under the mark -->
+    <pattern id="ga-grid" width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M8 0H0V8" fill="none" stroke="#1a1816" stroke-opacity="0.07"
+            stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <!-- Bone-paper substrate, rounded square -->
+  <rect width="64" height="64" rx="10" fill="#f1ece2"/>
+  <rect width="64" height="64" rx="10" fill="url(#ga-grid)"/>
+
+  <!-- Corner tick marks of the title block -->
+  <g stroke="#1a1816" stroke-width="1.4" stroke-linecap="square" fill="none">
+    <path d="M5 9 V5 H9"/>
+    <path d="M55 5 H59 V9"/>
+    <path d="M59 55 V59 H55"/>
+    <path d="M9 59 H5 V55"/>
+  </g>
+
+  <!-- XY reference rule -->
+  <line x1="9" y1="36" x2="55" y2="36" stroke="#1a1816" stroke-width="1.4"/>
+  <text x="9" y="34" font-family="ui-monospace, monospace" font-size="4"
+        fill="#1a1816" letter-spacing="0.4">X</text>
+  <text x="55" y="34" text-anchor="end" font-family="ui-monospace, monospace"
+        font-size="4" fill="#1a1816" letter-spacing="0.4">Y</text>
+
+  <!-- Front view (above XY) — sanguine crimson, the lifted square plate -->
+  <g stroke="#b8341c" stroke-width="1.6" stroke-linejoin="miter" fill="none">
+    <path d="M20 36 L32 18 L44 36"/>
+  </g>
+
+  <!-- Top view (below XY) — blueprint blue rhombus, the foreshortened plate -->
+  <g stroke="#1e5fa8" stroke-width="1.6" stroke-linejoin="miter" fill="none">
+    <path d="M20 36 L32 42 L44 36 L32 48 Z"/>
+  </g>
+
+  <!-- Projector dashes carrying vertices from TV up to FV -->
+  <g stroke="#1a1816" stroke-opacity="0.55" stroke-width="0.7"
+     stroke-dasharray="1.6 1.4" fill="none">
+    <line x1="20" y1="36" x2="20" y2="42"/>
+    <line x1="44" y1="36" x2="44" y2="42"/>
+    <line x1="32" y1="18" x2="32" y2="42"/>
+  </g>
+
+  <!-- Vertex dots: FV (red) primed labels, TV (blue) plain -->
+  <g>
+    <circle cx="20" cy="36" r="1.4" fill="#1a1816"/>
+    <circle cx="44" cy="36" r="1.4" fill="#1a1816"/>
+    <circle cx="32" cy="18" r="1.6" fill="#b8341c"/>
+    <circle cx="32" cy="48" r="1.6" fill="#1e5fa8"/>
+  </g>
+
+  <!-- Compass apex / "i"-dot, set above the figure as a stamp -->
+  <g>
+    <circle cx="32" cy="11" r="2" fill="#1a1816"/>
+    <circle cx="32" cy="11" r="0.7" fill="#f1ece2"/>
+  </g>
+
+  <!-- 60° HP-tilt arc opening from XY into the FV apex, drafted thin -->
+  <path d="M26 36 A 6 6 0 0 1 28.5 30.8" fill="none" stroke="#1a1816"
+        stroke-width="0.8"/>
+  <text x="28" y="34" font-family="ui-monospace, monospace" font-size="3"
+        fill="#1a1816">θ</text>
+
+  <!-- Engraved monogram in the lower title-block strip -->
+  <text x="32" y="58" text-anchor="middle"
+        font-family="'Fraunces', 'Times New Roman', serif"
+        font-size="6" font-style="italic" font-weight="600"
+        fill="#1a1816" letter-spacing="0.4">GraphicAI</text>
+</svg>

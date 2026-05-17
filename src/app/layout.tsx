@@ -26,6 +26,20 @@ export const metadata: Metadata = {
   description:
     "Type the problem. Get the projection. GraphicAI calculates rotation matrices and renders first-angle blueprints in the way your professor expects.",
   authors: [{ name: "Arsh Pathan" }],
+  icons: {
+    icon: [
+      { url: "/graphicai-icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/graphicai-icon.svg",
+    apple: "/graphicai-icon.svg",
+  },
+  openGraph: {
+    title: "GraphicAI — drafted projections from prose",
+    description:
+      "A drafting atelier for engineering students. Prose in, first-angle plate out.",
+    images: ["/graphicai-mark.svg"],
+    type: "website",
+  },
 };
 
 export default function RootLayout({
