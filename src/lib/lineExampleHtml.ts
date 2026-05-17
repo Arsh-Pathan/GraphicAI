@@ -73,12 +73,12 @@ export const lineExampleHtml = `<!DOCTYPE html>
 /* ─── Problem statement ─────────────────────────────────────────────── */
 const PROBLEM = {
   title: "Line MN — apparent angles 40° (FV) & 45° (TV), projector distance 100 mm",
-  text: "<strong>Problem Statement:</strong> The point M of line MN is 20 mm above HP &amp; is in VP. Its FV &amp; TV make 40° &amp; 45° with HP &amp; VP respectively. Draw the projections if the distance between the end projectors is 100 mm. Find true inclinations."
+  text: "<strong>Problem Statement:</strong> The point M of line MN is 20 mm above HP &amp; 15 mm in front of VP. Its FV &amp; TV make 40° &amp; 45° with HP &amp; VP respectively. Draw the projections if the distance between the end projectors is 100 mm. Find true inclinations."
 };
 
 /* ─── Given ─────────────────────────────────────────────────────────── */
 const mAboveHP   = 20;          // height of M above XY (FV)
-const mInFrontVP = 0;           // M is in VP
+const mInFrontVP = 15;          // M in front of VP
 const L          = 100;         // projector distance between end points
 const alphaDeg   = 40;          // FV apparent angle with XY
 const betaDeg    = 45;          // TV apparent angle with XY
@@ -297,7 +297,8 @@ function render(){
   // Dimensions
   const projectorDimOffset = Math.max(mInFrontVP, nInFrontVP) * scale + 45;
   dim(mx, oy, NX, oy, projectorDimOffset, L.toFixed(0)+" mm  (Projector Distance)");
-  dim(mx-35, M_fv.y, mx-35, oy, 0, mAboveHP+" mm");
+  if (mAboveHP > 0) dim(mx-35, M_fv.y, mx-35, oy, 0, mAboveHP+" mm");
+  if (mInFrontVP > 0) dim(mx-35, oy, mx-35, M_tv.y, 0, mInFrontVP+" mm");
 
   /* Construction A: TV mn swung to horizontal */
   const r_tv = TV_len*scale;
