@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -10,11 +10,37 @@ const SAMPLE_PROMPTS = [
   "Circular lamina of 50 mm diameter rests on HP with one diameter inclined at 30° to VP and 45° to HP.",
 ];
 
+const USER_KEY_STORAGE = "graphicai.geminiKey";
+
 export default function GeneratePage() {
   const [prompt, setPrompt] = useState("");
   const [html, setHtml] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userKey, setUserKey] = useState<string>("");
+  const [showKeyPanel, setShowKeyPanel] = useState(false);
+  const [keyPanelReason, setKeyPanelReason] = useState<
+    "rate" | "missing" | "invalid" | "manual"
+  >("manual");
+
+  // Restore saved key on mount.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(USER_KEY_STORAGE);
+      if (saved) setUserKey(saved);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const persistKey = (k: string) => {
+    try {
+      if (k) localStorage.setItem(USER_KEY_STORAGE, k);
+      else localStorage.removeItem(USER_KEY_STORAGE);
+    } catch {
+      /* ignore */
+    }
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -22,13 +48,30 @@ export default function GeneratePage() {
     setError(null);
     setHtml(null);
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (userKey.trim()) headers["x-gemini-key"] = userKey.trim();
+
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ prompt }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Generation failed");
+
+      if (!res.ok) {
+        const code = data?.code as string | undefined;
+        if (data?.needsUserKey || code === "RATE_LIMITED" || code === "NEEDS_USER_KEY") {
+          setKeyPanelReason(code === "RATE_LIMITED" ? "rate" : "missing");
+          setShowKeyPanel(true);
+        } else if (code === "INVALID_USER_KEY" || code === "INVALID_SERVER_KEY") {
+          setKeyPanelReason("invalid");
+          setShowKeyPanel(true);
+        }
+        throw new Error(data.error || "Generation failed");
+      }
+
       setHtml(data.html);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Generation failed";
@@ -82,19 +125,34 @@ export default function GeneratePage() {
         <div className="hidden md:flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.2em] text-pencil">
           <span>Method: <span className="text-ink">First Angle</span></span>
           <span>Scale: <span className="text-ink">1 : 1</span></span>
-          <span>Engine: <span className="text-ink">Gemini · v2.5</span></span>
+          <span>Engine: <span className="text-ink">Gemini · 2.5 Pro</span></span>
         </div>
 
-        {html && (
-          <motion.button
-            initial={{ opacity: 0, x: 6 }}
-            animate={{ opacity: 1, x: 0 }}
-            onClick={handleDownload}
-            className="inline-flex items-center gap-2 bg-ink text-paper px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.22em] hover:bg-pencil transition-colors shadow-[3px_3px_0_var(--color-sanguine)]"
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              setKeyPanelReason("manual");
+              setShowKeyPanel(true);
+            }}
+            className="font-mono text-[10px] uppercase tracking-[0.22em] text-pencil hover:text-ink border border-ink/30 hover:border-ink px-3 py-2 transition-colors flex items-center gap-2"
+            title={userKey ? "Your personal Gemini key is in use" : "Use your own Gemini API key"}
           >
-            ↓ Export HTML
-          </motion.button>
-        )}
+            <KeyGlyph />
+            {userKey ? "Your key" : "API key"}
+            {userKey && <span className="w-1.5 h-1.5 rounded-full bg-moss inline-block" />}
+          </button>
+
+          {html && (
+            <motion.button
+              initial={{ opacity: 0, x: 6 }}
+              animate={{ opacity: 1, x: 0 }}
+              onClick={handleDownload}
+              className="inline-flex items-center gap-2 bg-ink text-paper px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.22em] hover:bg-pencil transition-colors shadow-[3px_3px_0_var(--color-sanguine)]"
+            >
+              ↓ Export HTML
+            </motion.button>
+          )}
+        </div>
       </header>
 
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-[460px_1fr] min-h-0 relative">
@@ -111,7 +169,7 @@ export default function GeneratePage() {
             </div>
             <p className="text-pencil text-sm leading-relaxed pl-9">
               Give the primitive, dimensions, resting condition, and the two
-              inclinations (HP & VP).
+              inclinations (HP &amp; VP).
             </p>
           </div>
 
@@ -121,7 +179,6 @@ export default function GeneratePage() {
             </label>
 
             <div className="relative">
-              {/* corner ticks */}
               <Tick className="absolute -top-1 -left-1" />
               <Tick className="absolute -top-1 -right-1" />
               <Tick className="absolute -bottom-1 -left-1" />
@@ -204,7 +261,6 @@ export default function GeneratePage() {
 
         {/* ─── Right preview canvas ───────────────────────────────── */}
         <section className="relative flex flex-col min-h-0">
-          {/* corner annotation */}
           <div className="absolute top-4 right-6 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft z-10 text-right">
             Plate · DWG-002
             <br />
@@ -285,7 +341,248 @@ export default function GeneratePage() {
           </div>
         </section>
       </main>
+
+      {/* ─── BYOK panel ────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {showKeyPanel && (
+          <KeyPanel
+            reason={keyPanelReason}
+            initialKey={userKey}
+            onClose={() => setShowKeyPanel(false)}
+            onSave={(k) => {
+              setUserKey(k);
+              persistKey(k);
+              setShowKeyPanel(false);
+            }}
+            onClear={() => {
+              setUserKey("");
+              persistKey("");
+              setShowKeyPanel(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+/* ─── BYOK panel ──────────────────────────────────────────────────── */
+function KeyPanel({
+  reason,
+  initialKey,
+  onClose,
+  onSave,
+  onClear,
+}: {
+  reason: "rate" | "missing" | "invalid" | "manual";
+  initialKey: string;
+  onClose: () => void;
+  onSave: (k: string) => void;
+  onClear: () => void;
+}) {
+  const [draft, setDraft] = useState(initialKey);
+  const [reveal, setReveal] = useState(false);
+
+  const headline =
+    reason === "rate"
+      ? "The studio's key is rate-limited."
+      : reason === "invalid"
+      ? "That key was rejected."
+      : reason === "missing"
+      ? "No server key configured."
+      : "Use your own Gemini key.";
+
+  const subhead =
+    reason === "rate"
+      ? "Too many drafters at the table. Slot in your own Gemini key — it stays in your browser, never on our server, and the free tier is plenty for hundreds of plates."
+      : reason === "invalid"
+      ? "Google didn't recognise that key. Generate a fresh one and paste it below."
+      : reason === "missing"
+      ? "The server has no Gemini key set. Paste yours below to keep drafting — it stays in your browser only."
+      : "Your personal key takes precedence over the studio's shared key. Stored only in this browser, never sent anywhere except Google.";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-ink/30 backdrop-blur-[2px] grid place-items-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 12, scale: 0.98 }}
+        transition={{ type: "spring", damping: 22, stiffness: 240 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-2xl bg-paper border border-ink shadow-[10px_10px_0_var(--color-ink)] max-h-[90vh] overflow-y-auto"
+      >
+        {/* ticker bar */}
+        <div className="flex items-stretch border-b border-ink/60 font-mono text-[10px] uppercase tracking-[0.2em] text-pencil">
+          <div className="flex-1 px-4 py-2 border-r border-ink/40">
+            Studio · key intake
+          </div>
+          <div className="px-4 py-2 border-r border-ink/40">
+            DWG-AUTH-001
+          </div>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 hover:bg-ink hover:text-paper transition-colors"
+            aria-label="Close"
+          >
+            ✕ close
+          </button>
+        </div>
+
+        <div className="p-6 md:p-10">
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-sanguine mb-3">
+            {reason === "rate" && "§ 429 · quota exhausted"}
+            {reason === "invalid" && "§ 401 · key rejected"}
+            {reason === "missing" && "§ 503 · no key on file"}
+            {reason === "manual" && "§ Optional · bring your own"}
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl tracking-tight leading-[1.05] mb-3">
+            {headline}
+          </h2>
+          <p className="text-pencil leading-relaxed max-w-prose">
+            {subhead}
+          </p>
+
+          {/* Steps */}
+          <div className="mt-8 border-t border-ink/30 pt-7">
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft mb-4">
+              How to get a key — 30 seconds
+            </div>
+            <ol className="space-y-4">
+              <KeyStep
+                index="01"
+                title="Open Google AI Studio"
+                body={
+                  <>
+                    Visit{" "}
+                    <a
+                      href="https://aistudio.google.com/app/apikey"
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="hand-underline font-medium text-ink hover:text-sanguine transition-colors"
+                    >
+                      aistudio.google.com/app/apikey
+                    </a>
+                    . Sign in with any Google account.
+                  </>
+                }
+              />
+              <KeyStep
+                index="02"
+                title="Click ‘Create API key’"
+                body={
+                  <>
+                    Pick a project (any project, or let it create a default).
+                    Google will mint a key beginning with{" "}
+                    <code className="font-mono text-[12px] bg-ink/5 px-1.5 py-0.5 border border-ink/20">
+                      AIza…
+                    </code>
+                    .
+                  </>
+                }
+              />
+              <KeyStep
+                index="03"
+                title="Copy the key"
+                body="Click the copy button next to the freshly generated key. The free tier is generous — 15 RPM, 1500 requests/day on Gemini 2.5 Flash."
+              />
+              <KeyStep
+                index="04"
+                title="Paste it below"
+                body="Your key is stored only in this browser (localStorage). It is sent directly to Google for each request. Clear it any time from this panel."
+              />
+            </ol>
+          </div>
+
+          {/* Input */}
+          <div className="mt-8">
+            <label className="block font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft mb-3">
+              Your Gemini API key
+            </label>
+            <div className="relative">
+              <Tick className="absolute -top-1 -left-1" />
+              <Tick className="absolute -top-1 -right-1" />
+              <Tick className="absolute -bottom-1 -left-1" />
+              <Tick className="absolute -bottom-1 -right-1" />
+              <input
+                type={reveal ? "text" : "password"}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="AIza…"
+                className="w-full px-5 py-4 bg-paper border border-ink/50 focus:outline-none focus:border-ink focus:shadow-[3px_3px_0_var(--color-sanguine)] transition-all text-[14px] font-mono text-ink placeholder:text-ink-soft/60 pr-24"
+                spellCheck={false}
+                autoComplete="off"
+              />
+              <button
+                onClick={() => setReveal((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] uppercase tracking-[0.2em] text-pencil hover:text-ink border border-ink/30 hover:border-ink px-2 py-1 transition-colors"
+              >
+                {reveal ? "hide" : "show"}
+              </button>
+            </div>
+
+            <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-moss inline-block" />
+              stays in this browser · never logged
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-ink/30 pt-6">
+            <button
+              onClick={() => onSave(draft.trim())}
+              disabled={!draft.trim()}
+              className="bg-ink text-paper px-6 py-3 font-mono text-[11px] uppercase tracking-[0.24em] hover:bg-pencil disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-[4px_4px_0_var(--color-sanguine)]"
+            >
+              Save &amp; use this key →
+            </button>
+            {initialKey && (
+              <button
+                onClick={onClear}
+                className="font-mono text-[10px] uppercase tracking-[0.22em] text-pencil hover:text-sanguine border border-ink/30 hover:border-sanguine px-4 py-3 transition-colors"
+              >
+                Clear saved key
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft hover:text-ink px-3 py-3 transition-colors ml-auto"
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function KeyStep({
+  index,
+  title,
+  body,
+}: {
+  index: string;
+  title: string;
+  body: React.ReactNode;
+}) {
+  return (
+    <li className="flex gap-4">
+      <div className="font-display text-2xl italic text-sanguine leading-none pt-1 w-10 shrink-0">
+        {index}
+      </div>
+      <div>
+        <div className="font-display text-lg tracking-tight text-ink leading-tight">
+          {title}
+        </div>
+        <div className="text-pencil text-sm leading-relaxed mt-1">{body}</div>
+      </div>
+    </li>
   );
 }
 
@@ -295,6 +592,22 @@ function Tick({ className }: { className?: string }) {
     <div
       className={`w-2 h-2 border-t-[1.5px] border-l-[1.5px] border-ink ${className}`}
     />
+  );
+}
+
+function KeyGlyph() {
+  return (
+    <svg
+      width="11"
+      height="11"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    >
+      <circle cx="6" cy="10" r="3" />
+      <path d="M8 8l6-6M11 5l2 2" strokeLinecap="round" />
+    </svg>
   );
 }
 
@@ -384,10 +697,8 @@ function DraftingLoader() {
       </div>
 
       <div className="relative h-[60vh] bg-vellum bg-drafting-fine overflow-hidden">
-        {/* scanning line */}
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-transparent via-blueprint/15 to-transparent border-b border-blueprint/60 animate-scan" />
 
-        {/* skeleton plate */}
         <svg
           viewBox="0 0 400 300"
           className="absolute inset-0 m-auto w-3/4 h-3/4"

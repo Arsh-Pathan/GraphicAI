@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GraphicAI
 
-## Getting Started
+> A drafting machine for engineering students. Type the problem in prose — get
+> a first-angle projection plate, drafted on bone paper, with the matrices
+> shown.
 
-First, run the development server:
+Built with Next.js 16, Tailwind v4, Framer Motion, and Google Gemini 2.5 Pro.
+From a student, to students. — Arsh Pathan.
+
+---
+
+## Quick start
 
 ```bash
+# 1. Install
+npm install
+
+# 2. Configure your Gemini key
+cp .env.example .env
+# then edit .env and paste your GEMINI_API_KEY
+
+# 3. Run
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Getting a Gemini API key
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Go to [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey).
+2. Sign in with any Google account.
+3. Click **Create API key** — Google will mint one starting with `AIza…`.
+4. Paste it into `.env` as `GEMINI_API_KEY=…`.
 
-## Learn More
+The free tier on Gemini 2.5 Flash is generous (15 RPM, 1500 requests/day).
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Bring Your Own Key (BYOK)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If the server's shared API key hits its quota — or if you're self-hosting and
+don't want to provision a server key at all — the `/generate` UI gracefully
+prompts the user to paste their own key. It is:
 
-## Deploy on Vercel
+- Stored only in the browser's `localStorage`.
+- Sent over a request header (`x-gemini-key`) directly to your server, which
+  forwards it to Google. **Never logged.**
+- Cleared instantly from the same panel.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The route in `src/app/api/generate/route.ts` prefers the user-supplied key
+over the server key when both are present.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Docker
+
+```bash
+docker compose up -d --build
+```
+
+The compose file loads `.env` for `GEMINI_API_KEY`, exposes port 3000, and
+adds a wget-based healthcheck.
+
+---
+
+## Stack
+
+| Layer       | Choice                                          |
+| ----------- | ----------------------------------------------- |
+| Framework   | Next.js 16 (App Router, Turbopack, standalone)  |
+| Language    | TypeScript                                      |
+| Styling     | Tailwind CSS v4 + custom drafting design system |
+| Motion      | Framer Motion 12                                |
+| AI          | Google Gemini 2.5 Pro / Flash via `@google/genai` |
+| Type        | First-Angle Projection of plane laminae        |
