@@ -149,7 +149,7 @@ Every plate, regardless of family, MUST carry these annotations:
   3. **Dimension lines** with tick endcaps and a centred mm label for
      every given linear measure (projector distance, heights above HP,
      depths in front of VP, true length). Do NOT draw dimension lines for derived/found lengths on the diagram; leave them in the results card.
-  4. **Line Labels**: Label the Front View line as "EL" (Elevation Length), the Top View line as "PL" (Plan Length), and True Length lines as "TL". Use the \`tiltedLabel(text, x1, y1, x2, y2, color, size, weight)\` function so the text aligns perfectly with the line. If EL, PL, or TL lengths are explicitly given in the problem, append the value (e.g., "EL = 60 mm"). If they are found/calculated, just write "EL", "PL", or "TL".
+  4. **Line Labels**: Label the Front View line as "FVL", the Top View line as "TVL", and True Length lines as "TL". Use the \\\`tiltedLabel(text, x1, y1, x2, y2, color, size, weight)\\\` function so the text aligns perfectly with the line. If FVL, TVL, or TL lengths are explicitly given in the problem, append the value (e.g., "FVL = 60 mm"). If they are found/calculated, just write "FVL", "TVL", or "TL".
   4. **Projector dashes** connecting matching endpoints between FV and TV.
   5. **Locus arcs** (dashed, grey) showing every rotation used to find TL
      or any auxiliary length.

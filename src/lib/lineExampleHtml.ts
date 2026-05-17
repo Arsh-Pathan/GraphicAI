@@ -146,8 +146,8 @@ function tiltedLabel(text, x1, y1, x2, y2, color, size, weight, above = true) {
   ctx.fillText(text, 0, above ? -4 : 4);
   ctx.restore();
 }
-function angleLabel(text, cx, cy, radius, startAngle, endAngle, color, bias = 0.5) {
-  const angle = startAngle + (endAngle - startAngle) * bias;
+function angleLabel(text, cx, cy, radius, startAngle, endAngle, color) {
+  const angle = (startAngle + endAngle) / 2;
   const tx = cx + radius * Math.cos(angle);
   const ty = cy + radius * Math.sin(angle);
   
@@ -281,16 +281,18 @@ function render(){
   label("n",  N_tv.x+8,  N_tv.y+16);
   
   // Line labels
-  tiltedLabel("EL", M_fv.x, M_fv.y, N_fv.x, N_fv.y, COLOR_FV, 12, 'normal', true);
-  tiltedLabel("PL", M_tv.x, M_tv.y, N_tv.x, N_tv.y, COLOR_TV, 12, 'normal', false);
+  tiltedLabel("FVL", M_fv.x, M_fv.y, N_fv.x, N_fv.y, COLOR_FV, 12, 'normal', true);
+  tiltedLabel("TVL", M_tv.x, M_tv.y, N_tv.x, N_tv.y, COLOR_TV, 12, 'normal', false);
 
-  // Apparent angle α at m' (FV)
-  angleArc(M_fv.x, M_fv.y, 30, -alpha, 0, COLOR_FV);
-  angleLabel(alphaDeg+"° (α)", M_fv.x, M_fv.y, 45, -alpha, 0, COLOR_FV, 0.8);
+  // Angles at m' (FV) - single arc for both θ and α
+  angleArc(M_fv.x, M_fv.y, 40, -alpha, 0, COLOR_DIM);
+  angleLabel("θ", M_fv.x, M_fv.y, 48, -thetaHP, 0, COLOR_TL);
+  angleLabel(alphaDeg+"° (α)", M_fv.x, M_fv.y, 48, -alpha, -thetaHP, COLOR_FV);
 
-  // Apparent angle β at m (TV)
-  angleArc(M_tv.x, M_tv.y, 30, 0, beta, COLOR_TV);
-  angleLabel(betaDeg+"° (β)", M_tv.x, M_tv.y, 45, 0, beta, COLOR_TV, 0.2);
+  // Angles at m (TV) - single arc for both φ and β
+  angleArc(M_tv.x, M_tv.y, 40, 0, beta, COLOR_DIM);
+  angleLabel("φ", M_tv.x, M_tv.y, 48, 0, phiVP, COLOR_TL);
+  angleLabel(betaDeg+"° (β)", M_tv.x, M_tv.y, 48, phiVP, beta, COLOR_TV);
 
   // Dimensions
   const projectorDimOffset = Math.max(mInFrontVP, nInFrontVP) * scale + 45;
@@ -327,12 +329,7 @@ function render(){
   label("n₂", tlEndB.x+6, tlEndB.y+16, COLOR_TL, 12);
   tiltedLabel("TL", M_tv.x, M_tv.y, tlEndB.x, tlEndB.y, COLOR_TL, 13, 'bold', true);
   
-  // True inclination arcs (θ and φ)
-  angleArc(M_fv.x, M_fv.y, 45, -thetaHP, 0, COLOR_TL);
-  angleLabel("θ", M_fv.x, M_fv.y, 58, -thetaHP, 0, COLOR_TL, 0.2);
-  
-  angleArc(M_tv.x, M_tv.y, 45, 0, phiVP, COLOR_TL);
-  angleLabel("φ", M_tv.x, M_tv.y, 58, 0, phiVP, COLOR_TL, 0.8);
+  // True inclination arcs removed because they are drawn together with apparent angles above
 }
 
 function drawXY(ox, oy, w, title){
