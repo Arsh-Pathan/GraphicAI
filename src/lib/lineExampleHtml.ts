@@ -281,8 +281,8 @@ function render(){
   label("n",  N_tv.x+8,  N_tv.y+16);
   
   // Line labels
-  tiltedLabel("FVL", M_fv.x, M_fv.y, N_fv.x, N_fv.y, COLOR_FV, 12, 'normal', true);
-  tiltedLabel("TVL", M_tv.x, M_tv.y, N_tv.x, N_tv.y, COLOR_TV, 12, 'normal', false);
+  tiltedLabel("EL", M_fv.x, M_fv.y, N_fv.x, N_fv.y, COLOR_FV, 12, 'normal', true);
+  tiltedLabel("PL", M_tv.x, M_tv.y, N_tv.x, N_tv.y, COLOR_TV, 12, 'normal', false);
 
   // Angles at m' (FV) - single arc for both θ and α
   angleArc(M_fv.x, M_fv.y, 40, -alpha, 0, COLOR_DIM);
