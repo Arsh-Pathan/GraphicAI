@@ -44,9 +44,9 @@ Decide which family the user's problem belongs to before drafting:
   • LINE PROJECTION — a straight line segment AB / MN with endpoints
     constrained by heights above HP, distances in front of VP, apparent
     angles in FV/TV, projector distances, true length, true inclinations.
-    → Use the LINE EXEMPLAR. Two stages: Given Projections → True Length
-      by Rotation. NO rotation matrices — just point projections and
-      locus-arc constructions.
+    → Use the LINE EXEMPLAR. ONE combined plate (NOT two side-by-side
+      stages). FV above XY, TV below XY, sharing vertical projectors.
+      Locus arcs swung in place on the same plate. NO rotation matrices.
 
 If the prose mentions "lamina", "plate", "plane", "polygon", named shapes
 resting on a corner/edge/side, or two surface inclinations → LAMINA.
@@ -87,8 +87,21 @@ LINE PROJECTION RULES
 ══════════════════════════════════════════════════════════════════════════
 • Endpoints labelled lowercase: \`a, b\` (TV), \`a', b'\` (FV).
   Construction landing points: \`a₁, b₁, a₂', b₂'\` etc.
-• Two stages left-to-right: Stage 1 = Given Projections; Stage 2 = True
-  Length by Rotation.
+• **ONE combined plate**, never two side-by-side stages. XY line runs
+  horizontally across the middle of the canvas. FV sits ABOVE XY (height
+  z plotted upward), TV sits BELOW XY (depth y plotted downward). FV and
+  TV share the same vertical projector through every endpoint. This is
+  the standard Indian engineering-graphics textbook convention.
+• Locus-arc rotations are drawn IN PLACE on the same plate:
+    – Swing TV \`ab\` about \`a\` to the horizontal through \`a\`, mark \`b₁\`,
+      project vertically up to the FV locus of \`b'\`, mark \`b₁'\`. Line
+      \`a'b₁'\` is the TL on the FV side; angle with horizontal = θ_HP.
+    – Swing FV \`a'b'\` about \`a'\` to the horizontal through \`a'\`, mark
+      \`b₂'\`, project vertically down to the TV locus of \`b\`, mark \`b₂\`.
+      Line \`ab₂\` is the TL on the TV side; angle with horizontal = φ_VP.
+    – Draw a faint horizontal "locus of b'" line through a' at FV height,
+      and a faint horizontal "locus of b" line through a at TV depth, so
+      the student can read the landings.
 • Coordinates: x along XY, y = distance in front of VP (TV down), z =
   height above HP (FV up). FV plots (x, −z), TV plots (x, +y), with the
   XY line as y=0 / z=0.
@@ -138,10 +151,11 @@ Every plate, regardless of family, MUST carry these annotations:
   4. **Projector dashes** connecting matching endpoints between FV and TV.
   5. **Locus arcs** (dashed, grey) showing every rotation used to find TL
      or any auxiliary length.
-  6. **Stage titles** beneath each stage ("Stage 1 · Given projections",
-     "Stage 2 · True length by rotation", etc.).
-  7. **XY line** in every stage, with X / Y endpoint labels and VP/HP
-     reminders at the left.
+  6. **Locus labels** ("locus of b'", "locus of b") next to the
+     horizontal locus lines on line-projection plates. For lamina plates,
+     stage titles beneath each stage ("Stage 1 · True Shape", etc.).
+  7. **XY line** spanning the canvas, with X / Y endpoint labels and
+     VP/HP reminders at the left.
 
 ══════════════════════════════════════════════════════════════════════════
 UI / LAYOUT
@@ -166,9 +180,11 @@ SELF-CHECK BEFORE EMITTING
 ══════════════════════════════════════════════════════════════════════════
 Before writing the closing </html>, silently verify:
   ☑ Correct family chosen (LAMINA vs LINE) for the user's prose.
-  ☑ All stages fit on the canvas without overlapping (auto-scale if needed).
+  ☑ For LINE problems: single combined plate, NOT two stages side-by-side.
+    FV above XY, TV below, sharing vertical projectors.
   ☑ Every endpoint in TV has a primed counterpart on the same projector
     in FV (line problems).
+  ☑ Auto-scale so locus arcs and TL constructions fit without clipping.
   ☑ All apparent-angle arcs and dimension labels match what the JS
     actually computes (no drift between drawing and numbers).
   ☑ Locus-arc construction produces the same TL from both views.
