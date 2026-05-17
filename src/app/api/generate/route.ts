@@ -157,79 +157,13 @@ LINE PROJECTION RULES
 ══════════════════════════════════════════════════════════════════════════
 ENGINEERING CURVES RULES
 ══════════════════════════════════════════════════════════════════════════
-General:
 • Center the curve symmetrically on the canvas.
-• Draw the smooth curve in COLOR_CURVE (#e53e3e, red, lineWidth ~2.5).
-• Draw ALL construction lines in COLOR_CONSTRUCT (#a0aec0, faint grey, lineWidth ~0.5).
-• Draw axes in COLOR_AXIS (#38a169, green, dash-dot pattern).
-• Label key points and add dimensions for given values.
-
-ELLIPSE BY RECTANGLE METHOD:
-• Draw bounding rectangle (major axis × minor axis). Center = O.
-• Divide semi-major axis OA (horizontal centerline from O toward A) into N equal parts (typically 5). Number 1,2,3,… from O.
-• Mark the SAME N divisions on the top edge of the rectangle from C toward the corner.
-• From end A of major axis, draw lines to each division on the TOP EDGE of the rectangle (diagonal lines from A to the edge).
-• From end C of minor axis, draw lines to the same-numbered divisions on the SEMI-MAJOR AXIS (horizontal centerline, diagonal lines from C down to the axis).
-• Intersections of corresponding numbered lines (line-i from A ∩ line-i from C) = points on the ellipse.
-• Repeat for all 4 quadrants (using B, D for the other halves). Join points with smooth curve.
-
-PARABOLA BY RECTANGLE METHOD:
-• Draw a rectangle with width = base and height = axis height.
-• Divide the height into N equal parts (left edge, numbered 1-N from base).
-• Divide the half-base (top edge, from center to corner) into N equal parts (numbered 1-N).
-• From each height division, draw horizontal lines across.
-• From each base division, draw vertical lines down.
-• The intersection of horizontal line-i with vertical line-i = point on the parabola.
-• Join smoothly. The curve passes through the top center and base corners.
-
-PARABOLA / HYPERBOLA / ELLIPSE BY FOCUS-DIRECTRIX METHOD:
-• Draw directrix (vertical line DD') and mark Focus F at the given distance.
-• For parabola: eccentricity e = 1. Vertex V is midpoint of F to directrix.
-• For ellipse: e < 1. For hyperbola: e > 1.
-• Mark vertex V such that VF / V-to-directrix = e.
-• Draw several vertical cutting lines (numbered 1, 2, 3, …) at increasing distances from directrix.
-• For each cutting line at distance d from directrix: radius = e × d. From F, arc this radius to intersect the cutting line → 2 points (above and below axis). These are points on the curve.
-• Join all points with a smooth curve.
-
-HYPERBOLA (RECTANGULAR / ASYMPTOTE METHOD):
-• Given: point P at distances from horizontal and vertical axes.
-• Draw the two axes (asymptotes). Mark point P.
-• From P, draw lines parallel to axes intersecting asymptotes.
-• Construct further points using the xy = constant property.
-
-INVOLUTE OF A CIRCLE:
-• Draw the base circle (given diameter). Divide into 12 equal parts.
-• Number divisions 1-12 around the circle.
-• Draw tangent lines at each division point.
-• On tangent at point 1, mark length = 1/12 of circumference.
-• On tangent at point 2, mark length = 2/12 of circumference.
-• Continue: tangent at point N gets N/12 of circumference.
-• Join all marked points with a smooth curve = involute.
-• Show the tangent lines as construction.
-
-CYCLOID:
-• Draw the generating circle (given diameter). Draw the base line = πD (circumference).
-• Divide base line into 12 equal parts. Divide circle into 12 equal parts.
-• Draw horizontal lines from each circle division across the full width.
-• At each base division, draw a vertical line up to the center height.
-• For each position i, the center of the rolling circle is at (i × πD/12, radius).
-• From each center, arc the radius to intersect the corresponding horizontal line → point on cycloid.
-• Show both the cycloid for "point on ground" (starts at baseline) and "point farthest" (starts at top).
-
-HELIX ON A CYLINDER:
-• Draw the Front View (rectangle: diameter × height) on the left.
-• Draw the Top View (circle) below it.
-• Divide the circle (TV) into 12 equal parts.
-• Divide the height (FV) into 12 equal horizontal strips.
-• For each division i: project the x-coordinate from the circle division and the y-coordinate from the height division → plot the point.
-• Join all points with a smooth S-curve = helix.
-• The helix appears as a sine wave on the FV.
-
-SPIRAL (ARCHIMEDEAN):
-• Draw concentric circles with radii increasing from center to max radius in N equal steps.
-• Divide the full circle into N equal angular sectors (typically 8 or 12).
-• Intersection of circle-1 with ray-1, circle-2 with ray-2, … = points on spiral.
-• Join smoothly.
+• Use mathematical plotting loop (e.g. \`for (let theta = 0; theta <= max; theta += 0.05)\`) to draw the smooth curve path in \`COLOR_CURVE\`.
+• Draw construction points/lines (focus, directrix, rectangles, dividing rays) in \`COLOR_CONSTRUCT\`.
+• Label key points (Focus F, Vertex V, Center C, Directrix D-D') using \`label()\` and \`dot()\`.
+• Add dimensions for the primary parameters (e.g., Major Axis, Minor Axis, base, height, distance of focus from directrix).
+• For 3D generated curves (like a Helix on a cylinder/cone), plot the 2D projection (elevation and/or plan).
+• **Auto-scale carefully**: Curves can have large spans (e.g., an involute has a length related to circumference πD). Estimate the expected bounding box of the full curve and use a generous scale that fills at least 60-70% of the canvas without clipping. Avoid hardcoded scale caps like `4.0` if they cause small drawings on large screens.
 
 ══════════════════════════════════════════════════════════════════════════
 DEVELOPMENT RULES
