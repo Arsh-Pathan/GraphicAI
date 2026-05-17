@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(frontend-design)",
+      "Bash(npx --no-install next lint --max-warnings=0)",
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(npx --no-install tsc --noEmit src/app/page.tsx src/app/generate/page.tsx src/app/layout.tsx)",
+      "Bash(npx --no-install next build)",
+      "Bash(git add *)",
+      "Bash(git reset *)",
+      "Bash(git commit -m 'feat\\(ui\\): redesign as drafting-atelier — Fraunces display, blueprint plates, editorial grid *)",
+      "Bash(git push *)",
+      "Skill(claude-api)",
+      "Bash(npx next *)",
+      "Bash(git check-ignore *)",
+      "Bash(git commit *)"
+    ]
+  }
+}

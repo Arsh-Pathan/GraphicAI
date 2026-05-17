@@ -145,14 +145,17 @@ Every plate, regardless of family, MUST carry these annotations:
   1. **Endpoint dots** with **lowercase labels** placed with a small offset.
   2. **Apparent angle arcs** with degree labels (α, β, θ, φ as appropriate)
      drawn as small circular arcs at the vertex where the angle opens.
+     IMPORTANT: Only write numeric degree values on the diagram if they were GIVEN. For calculated/found angles, label them purely with symbols (e.g. just "θ" or "φ").
   3. **Dimension lines** with tick endcaps and a centred mm label for
      every given linear measure (projector distance, heights above HP,
-     depths in front of VP, true length).
+     depths in front of VP, true length). Do NOT draw dimension lines for derived/found lengths on the diagram; leave them in the results card.
+  4. **Line Labels**: Label the Front View line as "EL" (Elevation Length), the Top View line as "PL" (Plan Length), and True Length lines as "TL". Use the \`tiltedLabel(text, x1, y1, x2, y2, color, size, weight)\` function so the text aligns perfectly with the line. If EL, PL, or TL lengths are explicitly given in the problem, append the value (e.g., "EL = 60 mm"). If they are found/calculated, just write "EL", "PL", or "TL".
   4. **Projector dashes** connecting matching endpoints between FV and TV.
   5. **Locus arcs** (dashed, grey) showing every rotation used to find TL
      or any auxiliary length.
   6. **Locus labels** ("locus of b'", "locus of b") next to the
-     horizontal locus lines on line-projection plates. For lamina plates,
+     horizontal locus lines on line-projection plates.
+     IMPORTANT: Do NOT draw a horizontal locus line or its label if it falls exactly on the XY line. The XY line acts as the locus in this case.
      stage titles beneath each stage ("Stage 1 · True Shape", etc.).
   7. **XY line** spanning the canvas, with X / Y endpoint labels and
      VP/HP reminders at the left.

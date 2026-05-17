@@ -131,6 +131,31 @@ function label(text,x,y,color,size,weight){
   ctx.font = (weight||'bold')+' '+(size||13)+'px "Segoe UI", sans-serif';
   ctx.fillText(text,x,y);
 }
+function tiltedLabel(text, x1, y1, x2, y2, color, size, weight, above = true) {
+  const cx = (x1 + x2) / 2;
+  const cy = (y1 + y2) / 2;
+  let angle = Math.atan2(y2 - y1, x2 - x1);
+  if (angle > Math.PI / 2 || angle < -Math.PI / 2) angle += Math.PI;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.fillStyle = color || COLOR_TEXT;
+  ctx.font = (weight||'bold')+' '+(size||13)+'px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = above ? 'bottom' : 'top';
+  ctx.fillText(text, 0, above ? -4 : 4);
+  ctx.restore();
+}
+function angleLabel(text, cx, cy, radius, startAngle, endAngle, color) {
+  const midAngle = (startAngle + endAngle) / 2;
+  const tx = cx + radius * Math.cos(midAngle);
+  const ty = cy + radius * Math.sin(midAngle);
+  ctx.fillStyle = color;
+  ctx.font = '12px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, tx, ty);
+}
 function arc(cx,cy,r,a1,a2,color,ccw){
   ctx.beginPath();
   ctx.strokeStyle = color;
@@ -220,13 +245,21 @@ function render(){
 
   // Locus lines (extending past the largest arc)
   const right_edge = mx + max_len*scale + 20;
-  line(mx, M_fv.y, right_edge, M_fv.y, COLOR_PROJ, 1, [3,3]); // locus of m'
-  label("locus of m'", right_edge+5, M_fv.y+4, COLOR_PROJ, 12, 'normal');
-  line(mx, M_tv.y, right_edge, M_tv.y, COLOR_PROJ, 1, [3,3]); // locus of m
-  line(mx, N_fv.y, right_edge, N_fv.y, COLOR_PROJ, 1, [3,3]); // locus of n'
-  label("locus of n'", right_edge+5, N_fv.y+4, COLOR_PROJ, 12, 'normal');
-  line(mx, N_tv.y, right_edge, N_tv.y, COLOR_PROJ, 1, [3,3]); // locus of n
-  label("locus of n", right_edge+5, N_tv.y+4, COLOR_PROJ, 12, 'normal');
+  if (Math.abs(M_fv.y - oy) > 1) {
+    line(mx, M_fv.y, right_edge, M_fv.y, COLOR_PROJ, 1, [3,3]); // locus of m'
+    label("locus of m'", right_edge+5, M_fv.y+4, COLOR_PROJ, 12, 'normal');
+  }
+  if (Math.abs(M_tv.y - oy) > 1) {
+    line(mx, M_tv.y, right_edge, M_tv.y, COLOR_PROJ, 1, [3,3]); // locus of m
+  }
+  if (Math.abs(N_fv.y - oy) > 1) {
+    line(mx, N_fv.y, right_edge, N_fv.y, COLOR_PROJ, 1, [3,3]); // locus of n'
+    label("locus of n'", right_edge+5, N_fv.y+4, COLOR_PROJ, 12, 'normal');
+  }
+  if (Math.abs(N_tv.y - oy) > 1) {
+    line(mx, N_tv.y, right_edge, N_tv.y, COLOR_PROJ, 1, [3,3]); // locus of n
+    label("locus of n", right_edge+5, N_tv.y+4, COLOR_PROJ, 12, 'normal');
+  }
 
   // FV & TV segments
   line(M_fv.x, M_fv.y, N_fv.x, N_fv.y, COLOR_FV, 2.4);
@@ -241,16 +274,16 @@ function render(){
   label("n",  N_tv.x+8,  N_tv.y+16);
   
   // Line labels
-  label("FVL", (M_fv.x+N_fv.x)/2 - 15, (M_fv.y+N_fv.y)/2 - 10, COLOR_FV, 12, 'normal');
-  label("TVL", (M_tv.x+N_tv.x)/2 - 15, (M_tv.y+N_tv.y)/2 - 10, COLOR_TV, 12, 'normal');
+  tiltedLabel("EL", M_fv.x, M_fv.y, N_fv.x, N_fv.y, COLOR_FV, 12, 'normal', true);
+  tiltedLabel("PL", M_tv.x, M_tv.y, N_tv.x, N_tv.y, COLOR_TV, 12, 'normal', false);
 
   // Apparent angle α at m' (FV)
   angleArc(M_fv.x, M_fv.y, 30, -alpha, 0, COLOR_FV);
-  label(alphaDeg+"° (α)", M_fv.x+35, M_fv.y-10, COLOR_FV, 12);
+  angleLabel(alphaDeg+"° (α)", M_fv.x, M_fv.y, 45, -alpha, 0, COLOR_FV);
 
   // Apparent angle β at m (TV)
   angleArc(M_tv.x, M_tv.y, 30, 0, beta, COLOR_TV);
-  label(betaDeg+"° (β)", M_tv.x+35, M_tv.y+22, COLOR_TV, 12);
+  angleLabel(betaDeg+"° (β)", M_tv.x, M_tv.y, 45, 0, beta, COLOR_TV);
 
   // Dimensions
   const projectorDimOffset = Math.max(mInFrontVP, nInFrontVP) * scale + 45;
@@ -270,7 +303,7 @@ function render(){
   line(M_fv.x, M_fv.y, tlEndA.x, tlEndA.y, COLOR_TL, 2.4);
   dot(tlEndA.x, tlEndA.y, 3, COLOR_TL);
   label("n₁'", tlEndA.x+6, tlEndA.y-8, COLOR_TL, 12);
-  label("TL", (M_fv.x+tlEndA.x)/2 - 10, (M_fv.y+tlEndA.y)/2 - 8, COLOR_TL, 13);
+  tiltedLabel("TL", M_fv.x, M_fv.y, tlEndA.x, tlEndA.y, COLOR_TL, 13, 'bold', false);
   
   /* Construction B: FV m'n' swung to horizontal */
   const r_fv = FV_len*scale;
@@ -285,14 +318,14 @@ function render(){
   line(M_tv.x, M_tv.y, tlEndB.x, tlEndB.y, COLOR_TL, 2.4);
   dot(tlEndB.x, tlEndB.y, 3, COLOR_TL);
   label("n₂", tlEndB.x+6, tlEndB.y+16, COLOR_TL, 12);
-  label("TL", (M_tv.x+tlEndB.x)/2 - 10, (M_tv.y+tlEndB.y)/2 - 8, COLOR_TL, 13);
+  tiltedLabel("TL", M_tv.x, M_tv.y, tlEndB.x, tlEndB.y, COLOR_TL, 13, 'bold', true);
   
   // True inclination arcs (θ and φ)
   angleArc(M_fv.x, M_fv.y, 45, -thetaHP, 0, COLOR_TL);
-  label("θ = "+(thetaHP*180/Math.PI).toFixed(1)+"°", M_fv.x+52, M_fv.y-25, COLOR_TL, 12);
+  angleLabel("θ", M_fv.x, M_fv.y, 58, -thetaHP, 0, COLOR_TL);
   
   angleArc(M_tv.x, M_tv.y, 45, 0, phiVP, COLOR_TL);
-  label("φ = "+(phiVP*180/Math.PI).toFixed(1)+"°", M_tv.x+52, M_tv.y+35, COLOR_TL, 12);
+  angleLabel("φ", M_tv.x, M_tv.y, 58, 0, phiVP, COLOR_TL);
 }
 
 function drawXY(ox, oy, w, title){
