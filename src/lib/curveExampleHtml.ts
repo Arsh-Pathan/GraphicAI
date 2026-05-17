@@ -211,23 +211,27 @@ function render() {
 
   quadrants.forEach(q => {
     for (let i = 1; i < N; i++) {
-      // Line from A-end (end of major axis) to division i on the near short edge
-      const shortEdgeX = q.ax; // same x as the A-end (on the short edge)
+      // Division i on the LONG edge (top or bottom edge of rectangle)
+      const longEdgeX = cx + q.edgeXdir * i * dxMajor;
+      const longEdgeY = q.cy_; // same y as the C-end
+
+      // Division i on the SHORT edge (left or right edge of rectangle)
+      const shortEdgeX = q.ax; // same x as the A-end
       const shortEdgeY = cy + q.edgeYdir * i * dyMinor;
 
-      // Line from C-end (end of minor axis) to division i on the near long edge
-      const longEdgeX = cx + q.edgeXdir * i * dxMajor;
-      const longEdgeY = q.cy_; // same y as the C-end (on the long edge)
+      // Set 1: from A (end of major axis) → to division on the LONG edge
+      // These lines fan diagonally from A to the top/bottom edge divisions
+      line(q.ax, q.ay, longEdgeX, longEdgeY, COLOR_CONSTRUCT, 0.6);
 
-      // Draw construction lines (faint)
-      line(q.ax, q.ay, shortEdgeX, shortEdgeY, COLOR_CONSTRUCT, 0.5);
-      line(q.cx_, q.cy_, longEdgeX, longEdgeY, COLOR_CONSTRUCT, 0.5);
+      // Set 2: from C (end of minor axis) → to division on the SHORT edge
+      // These lines fan diagonally from C to the left/right edge divisions
+      line(q.cx_, q.cy_, shortEdgeX, shortEdgeY, COLOR_CONSTRUCT, 0.6);
 
-      // Find intersection of these two lines
-      // Line 1: from (q.ax, q.ay) to (shortEdgeX, shortEdgeY)
-      // Line 2: from (q.cx_, q.cy_) to (longEdgeX, longEdgeY)
-      const x1 = q.ax, y1 = q.ay, x2 = shortEdgeX, y2 = shortEdgeY;
-      const x3 = q.cx_, y3 = q.cy_, x4 = longEdgeX, y4 = longEdgeY;
+      // Find intersection of these two lines → point on the ellipse
+      // Line 1: from (q.ax, q.ay) to (longEdgeX, longEdgeY)
+      // Line 2: from (q.cx_, q.cy_) to (shortEdgeX, shortEdgeY)
+      const x1 = q.ax, y1 = q.ay, x2 = longEdgeX, y2 = longEdgeY;
+      const x3 = q.cx_, y3 = q.cy_, x4 = shortEdgeX, y4 = shortEdgeY;
 
       const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
       if (Math.abs(denom) > 0.001) {
