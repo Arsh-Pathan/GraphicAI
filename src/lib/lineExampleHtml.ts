@@ -286,12 +286,16 @@ function render(){
 
   // Angles at m' (FV) - single arc for both θ and α
   angleArc(M_fv.x, M_fv.y, 40, -alpha, 0, COLOR_DIM);
+  // True angle (θ) is smaller, so it occupies the inner wedge from 0 to -thetaHP
   angleLabel("θ", M_fv.x, M_fv.y, 48, -thetaHP, 0, COLOR_TL);
+  // Apparent angle (α) is larger, occupying the outer wedge from -thetaHP to -alpha
   angleLabel(alphaDeg+"° (α)", M_fv.x, M_fv.y, 48, -alpha, -thetaHP, COLOR_FV);
 
   // Angles at m (TV) - single arc for both φ and β
   angleArc(M_tv.x, M_tv.y, 40, 0, beta, COLOR_DIM);
+  // True angle (φ) is smaller, so it occupies the inner wedge from 0 to phiVP
   angleLabel("φ", M_tv.x, M_tv.y, 48, 0, phiVP, COLOR_TL);
+  // Apparent angle (β) is larger, occupying the outer wedge from phiVP to beta
   angleLabel(betaDeg+"° (β)", M_tv.x, M_tv.y, 48, phiVP, beta, COLOR_TV);
 
   // Dimensions
