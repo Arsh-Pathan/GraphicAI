@@ -1,9 +1,34 @@
+/**
+ * GraphicAI · canonical exemplar for ENGINEERING CURVES problems.
+ *
+ * Solves: "Draw an ellipse having major and minor axes 120 mm and 70 mm
+ * respectively by rectangle method."
+ *
+ * RECTANGLE METHOD for ellipse (textbook standard):
+ *   1. Draw a rectangle ABCD with sides = major axis (120) × minor axis (70).
+ *   2. Mark center O at intersection of axes.
+ *   3. Divide the SEMI-MAJOR axis (OA = half the long side on the rectangle top edge)
+ *      into N equal parts → number them 1, 2, 3, … from O.
+ *   4. Divide the SEMI-MINOR axis (OC = half the short side on the rectangle left edge)
+ *      into N equal parts → number them 1, 2, 3, … from O.
+ *   5. From end-of-major-axis (A on the left mid-point of the short edge),
+ *      draw straight lines to each division on the near short edge (top half).
+ *   6. From end-of-minor-axis (C on the top mid-point of the long edge),
+ *      draw straight lines to the SAME-numbered divisions on the near long edge (top half).
+ *   7. The intersection of corresponding numbered lines (line-1 from A ∩ line-1 from C)
+ *      gives one point on the ellipse.
+ *   8. Repeat for all 4 quadrants by symmetry.
+ *   9. Join all intersection points with a smooth freehand curve → ellipse.
+ *
+ * Number labels: divisions are labelled 1, 2, 3, … on BOTH the semi-major
+ * and semi-minor edges. The construction lines are drawn in light grey.
+ */
 export const curveExampleHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Engineering Graphics — Curve Solver</title>
+<title>Engineering Graphics — Ellipse by Rectangle Method</title>
 <style>
   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f8f9fa; color:#333; padding:20px; margin:0; display:flex; flex-direction:column; align-items:center; }
   .container { background:#fff; padding:30px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.05); max-width:1050px; width:100%; box-sizing:border-box; }
@@ -26,13 +51,13 @@ export const curveExampleHtml = `<!DOCTYPE html>
 </head>
 <body>
 <div class="container">
-  <h2>Engineering Graphics: Curve Solver</h2>
+  <h2>Engineering Graphics: Ellipse by Rectangle Method</h2>
   <div class="problem-desc" id="problem-desc"></div>
   <div class="canvas-container"><canvas id="canvas"></canvas></div>
   <div class="legend">
-    <div class="legend-item"><div class="box" style="background:#e53e3e;"></div> Curve Path</div>
+    <div class="legend-item"><div class="box" style="background:#e53e3e;"></div> Ellipse Curve</div>
     <div class="legend-item"><div class="box" style="background:#a0aec0; height:3px; border-radius:0; width:24px;"></div> Construction Lines</div>
-    <div class="legend-item"><div class="box" style="background:#38a169;"></div> Directrix / Axis</div>
+    <div class="legend-item"><div class="box" style="background:#38a169;"></div> Axes</div>
   </div>
   <div class="steps-card">
     <h3>Construction Steps &amp; Computed Values</h3>
@@ -42,188 +67,230 @@ export const curveExampleHtml = `<!DOCTYPE html>
 </div>
 
 <script>
-/* ─── Problem statement ─────────────────────────────────────────────── */
+/* ─── Problem Parameters ───────────────────────────────────────────── */
 const PROBLEM = {
-  title: "Ellipse by Rectangle Method",
   text: "<strong>Problem Statement:</strong> Draw an ellipse having major and minor axes 120 mm and 70 mm respectively by rectangle method."
 };
 
-/* ─── Given ─────────────────────────────────────────────────────────── */
-const majorAxis = 120;
-const minorAxis = 70;
-const numDivisions = 4; // Divisions per half-axis
+const majorAxis = 120; // mm
+const minorAxis = 70;  // mm
+const N = 5;           // divisions per semi-axis
 
-/* ─── Canvas ────────────────────────────────────────────────────────── */
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
-const COLOR_CURVE = '#e53e3e';
+/* ─── Colour Palette ───────────────────────────────────────────────── */
+const COLOR_CURVE     = '#e53e3e';
 const COLOR_CONSTRUCT = '#a0aec0';
-const COLOR_AXIS = '#38a169';
-const COLOR_TEXT = '#2d3748';
-const COLOR_DIM = '#718096';
+const COLOR_AXIS      = '#38a169';
+const COLOR_TEXT      = '#2d3748';
+const COLOR_DIM       = 'rgba(113, 128, 150, 0.5)';
 
+/* ─── Drawing Helpers ──────────────────────────────────────────────── */
 function setDash(arr) { ctx.setLineDash(arr || []); }
 function line(x1, y1, x2, y2, color, width, dash) {
-  ctx.beginPath();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width || 1;
-  setDash(dash);
-  ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
-  ctx.stroke();
-  setDash([]);
+  ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = width || 1;
+  setDash(dash); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); setDash([]);
 }
-function dot(x, y, r, color) { ctx.beginPath(); ctx.fillStyle = color; ctx.arc(x, y, r || 3, 0, Math.PI * 2); ctx.fill(); }
+function dot(x, y, r, color) {
+  ctx.beginPath(); ctx.fillStyle = color || COLOR_TEXT;
+  ctx.arc(x, y, r || 3, 0, Math.PI * 2); ctx.fill();
+}
 function label(text, x, y, color, size, weight) {
   ctx.fillStyle = color || COLOR_TEXT;
-  ctx.font = (weight || 'normal') + ' ' + (size || 12) + 'px "Segoe UI", sans-serif';
+  ctx.font = (weight || 'bold') + ' ' + (size || 12) + 'px "Segoe UI", sans-serif';
   ctx.fillText(text, x, y);
 }
-
-/* Dimension line with tick endcaps + centred label */
 function dim(x1, y1, x2, y2, offset, text) {
   const dx = x2 - x1, dy = y2 - y1, dist = Math.hypot(dx, dy);
+  if (dist < 1) return;
   const nx = -dy / dist, ny = dx / dist;
   const ox = nx * offset, oy = ny * offset;
   const ax = x1 + ox, ay = y1 + oy, bx = x2 + ox, by = y2 + oy;
-  const dimLineCol = 'rgba(113, 128, 150, 0.35)';
-  line(x1, y1, ax, ay, dimLineCol, 0.8);
-  line(x2, y2, bx, by, dimLineCol, 0.8);
-  line(ax, ay, bx, by, dimLineCol, 0.9);
-  const tick = 4;
-  line(ax - nx * tick, ay - ny * tick, ax + nx * tick, ay + ny * tick, dimLineCol, 0.9);
-  line(bx - nx * tick, by - ny * tick, bx + nx * tick, by + ny * tick, dimLineCol, 0.9);
+  line(x1, y1, ax, ay, COLOR_DIM, 0.8);
+  line(x2, y2, bx, by, COLOR_DIM, 0.8);
+  line(ax, ay, bx, by, COLOR_DIM, 0.9);
+  line(ax - nx * 4, ay - ny * 4, ax + nx * 4, ay + ny * 4, COLOR_DIM, 0.9);
+  line(bx - nx * 4, by - ny * 4, bx + nx * 4, by + ny * 4, COLOR_DIM, 0.9);
   const mx = (ax + bx) / 2, my = (ay + by) / 2;
-  ctx.save();
-  ctx.font = '12px "Segoe UI", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.save(); ctx.font = '12px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const tw = ctx.measureText(text).width;
-  ctx.fillStyle = '#fafafa';
-  ctx.fillRect(mx - tw / 2 - 4, my - 8, tw + 8, 16);
-  ctx.fillStyle = 'rgba(113, 128, 150, 0.8)';
-  ctx.fillText(text, mx, my);
-  ctx.restore();
+  ctx.fillStyle = '#fafafa'; ctx.fillRect(mx - tw/2 - 4, my - 8, tw + 8, 16);
+  ctx.fillStyle = COLOR_DIM; ctx.fillText(text, mx, my); ctx.restore();
 }
 
-/* ─── Render ────────────────────────────────────────────────────────── */
+/* ─── Main Render ──────────────────────────────────────────────────── */
 function render() {
   const rect = canvas.parentElement.getBoundingClientRect();
   const cw = rect.width;
   const ch = 650;
   ctx.clearRect(0, 0, cw, ch);
-
   document.getElementById('problem-desc').innerHTML = PROBLEM.text;
 
-  // Auto-scale to fit the curve and construction lines
-  const scale = Math.min((cw - 150) / majorAxis, (ch - 150) / minorAxis, 4.0);
-  const ox = cw / 2;
-  const oy = ch / 2;
+  // Scale to fit
+  const scale = Math.min((cw - 150) / majorAxis, (ch - 180) / minorAxis, 4.0);
+  const cx = cw / 2;  // center X
+  const cy = ch / 2;  // center Y
+  const a = (majorAxis / 2) * scale; // semi-major in px
+  const b = (minorAxis / 2) * scale; // semi-minor in px
 
-  // Bounding rectangle dimensions
-  const w = majorAxis * scale;
-  const h = minorAxis * scale;
+  /* ─── Rectangle (bounding box) ────────────────────────────────── */
+  const rectLeft = cx - a, rectRight = cx + a;
+  const rectTop = cy - b, rectBot = cy + b;
+  line(rectLeft, rectTop, rectRight, rectTop, COLOR_CONSTRUCT, 1);
+  line(rectRight, rectTop, rectRight, rectBot, COLOR_CONSTRUCT, 1);
+  line(rectRight, rectBot, rectLeft, rectBot, COLOR_CONSTRUCT, 1);
+  line(rectLeft, rectBot, rectLeft, rectTop, COLOR_CONSTRUCT, 1);
 
-  // Draw Major and Minor Axes
-  line(ox - w / 2 - 20, oy, ox + w / 2 + 20, oy, COLOR_AXIS, 1.5, [10, 4, 2, 4]); // Major axis
-  line(ox, oy - h / 2 - 20, ox, oy + h / 2 + 20, COLOR_AXIS, 1.5, [10, 4, 2, 4]); // Minor axis
-  label("Major Axis", ox + w / 2 + 25, oy + 4, COLOR_AXIS, 12, 'bold');
-  label("Minor Axis", ox - 35, oy - h / 2 - 25, COLOR_AXIS, 12, 'bold');
+  /* ─── Axes (dash-dot) ─────────────────────────────────────────── */
+  line(rectLeft - 20, cy, rectRight + 20, cy, COLOR_AXIS, 1.2, [10, 4, 2, 4]);
+  line(cx, rectTop - 20, cx, rectBot + 20, COLOR_AXIS, 1.2, [10, 4, 2, 4]);
 
-  // Draw Bounding Rectangle
-  line(ox - w / 2, oy - h / 2, ox + w / 2, oy - h / 2, COLOR_CONSTRUCT, 1, [3, 3]);
-  line(ox + w / 2, oy - h / 2, ox + w / 2, oy + h / 2, COLOR_CONSTRUCT, 1, [3, 3]);
-  line(ox + w / 2, oy + h / 2, ox - w / 2, oy + h / 2, COLOR_CONSTRUCT, 1, [3, 3]);
-  line(ox - w / 2, oy + h / 2, ox - w / 2, oy - h / 2, COLOR_CONSTRUCT, 1, [3, 3]);
+  /* ─── Division marks on semi-major (top edge, left half: from center to left) ─ */
+  // Top edge: from cx going left to rectLeft → N divisions
+  // Right side top edge: from cx going right to rectRight → N divisions (mirror)
+  // Left edge: from cy going up to rectTop → N divisions (semi-minor on short side)
+  // Right edge: from cy going up to rectTop → N divisions (mirror)
 
-  // Dimensioning
-  dim(ox - w / 2, oy + h / 2, ox + w / 2, oy + h / 2, 40, majorAxis + " mm (Major Axis)");
-  dim(ox - w / 2, oy - h / 2, ox - w / 2, oy + h / 2, 40, minorAxis + " mm (Minor Axis)");
+  // Division spacing
+  const dxMajor = a / N; // spacing along semi-major
+  const dyMinor = b / N; // spacing along semi-minor
 
-  const pts = [];
-
-  // Construct points for top-left quadrant
-  for (let i = 0; i <= numDivisions; i++) {
-    // Points along the vertical edge
-    const yEdge = oy - (i / numDivisions) * (h / 2);
-    const xEdge = ox - w / 2;
-
-    // Points along the major axis
-    const xCenter = ox - w / 2 + (i / numDivisions) * (w / 2);
-    const yCenter = oy;
-
-    // Top point of minor axis (focus of construction rays)
-    const fx = ox;
-    const fy = oy - h / 2;
-
-    // Bottom point of minor axis
-    const bx = ox;
-    const by = oy + h / 2;
-
-    if (i > 0 && i < numDivisions) {
-      // Ray 1: from top focus to edge points
-      line(fx, fy, xEdge, yEdge, COLOR_CONSTRUCT, 0.5);
-      
-      // Ray 2: from bottom focus through center points
-      // Extend ray 2 to intersect ray 1
-      const slope2 = (yCenter - by) / (xCenter - bx);
-      const intercept2 = by - slope2 * bx;
-
-      const slope1 = (yEdge - fy) / (xEdge - fx);
-      const intercept1 = fy - slope1 * fx;
-
-      const ix = (intercept2 - intercept1) / (slope1 - slope2);
-      const iy = slope1 * ix + intercept1;
-
-      pts.push({ x: ix, y: iy });
-      line(bx, by, ix, iy, COLOR_CONSTRUCT, 0.5);
-      dot(ix, iy, 2, COLOR_CURVE);
-      label("P" + i, ix - 15, iy - 5, COLOR_TEXT, 10);
-    }
+  // Mark divisions on top edge (semi-major, left half)
+  for (let i = 1; i < N; i++) {
+    const x = cx - i * dxMajor;
+    // Small tick on top edge
+    line(x, rectTop - 3, x, rectTop + 3, COLOR_TEXT, 0.8);
+    label(String(i), x - 3, rectTop - 8, COLOR_TEXT, 10, 'normal');
+    // Mirror on right
+    const xr = cx + i * dxMajor;
+    line(xr, rectTop - 3, xr, rectTop + 3, COLOR_TEXT, 0.8);
+    label(String(i), xr - 3, rectTop - 8, COLOR_TEXT, 10, 'normal');
+    // Bottom edge mirrors
+    line(x, rectBot - 3, x, rectBot + 3, COLOR_TEXT, 0.8);
+    label(String(i), x - 3, rectBot + 15, COLOR_TEXT, 10, 'normal');
+    line(xr, rectBot - 3, xr, rectBot + 3, COLOR_TEXT, 0.8);
+    label(String(i), xr - 3, rectBot + 15, COLOR_TEXT, 10, 'normal');
   }
 
-  // To draw the full curve perfectly, we calculate standard points, but the construction lines were drawn above
-  ctx.beginPath();
-  ctx.strokeStyle = COLOR_CURVE;
-  ctx.lineWidth = 2.5;
-  for (let theta = 0; theta <= Math.PI * 2; theta += 0.05) {
-    const cx = ox + (w / 2) * Math.cos(theta);
-    const cy = oy + (h / 2) * Math.sin(theta);
-    if (theta === 0) ctx.moveTo(cx, cy);
-    else ctx.lineTo(cx, cy);
+  // Mark divisions on left edge (semi-minor, top half)
+  for (let i = 1; i < N; i++) {
+    const y = cy - i * dyMinor;
+    line(rectLeft - 3, y, rectLeft + 3, y, COLOR_TEXT, 0.8);
+    label(String(i), rectLeft - 14, y + 4, COLOR_TEXT, 10, 'normal');
+    // Mirror on right edge
+    line(rectRight - 3, y, rectRight + 3, y, COLOR_TEXT, 0.8);
+    label(String(i), rectRight + 5, y + 4, COLOR_TEXT, 10, 'normal');
+    // Bottom half mirrors
+    const yb = cy + i * dyMinor;
+    line(rectLeft - 3, yb, rectLeft + 3, yb, COLOR_TEXT, 0.8);
+    label(String(i), rectLeft - 14, yb + 4, COLOR_TEXT, 10, 'normal');
+    line(rectRight - 3, yb, rectRight + 3, yb, COLOR_TEXT, 0.8);
+    label(String(i), rectRight + 5, yb + 4, COLOR_TEXT, 10, 'normal');
   }
-  ctx.closePath();
-  ctx.stroke();
 
-  // Draw endpoints
-  dot(ox - w / 2, oy, 4, COLOR_CURVE); label("A", ox - w / 2 - 15, oy + 4);
-  dot(ox + w / 2, oy, 4, COLOR_CURVE); label("B", ox + w / 2 + 5, oy + 4);
-  dot(ox, oy - h / 2, 4, COLOR_CURVE); label("C", ox + 5, oy - h / 2 - 5);
-  dot(ox, oy + h / 2, 4, COLOR_CURVE); label("D", ox + 5, oy + h / 2 + 15);
+  /* ─── Construction Lines & Intersection Points (all 4 quadrants) ── */
+  // For each quadrant, we draw two sets of lines and find intersections.
+  //
+  // TOP-LEFT QUADRANT:
+  //   Set A: from END of major axis on the LEFT (rectLeft, cy)
+  //          to each division on the LEFT short edge TOP half (rectLeft, cy - i*dyMinor)
+  //   Set C: from END of minor axis on the TOP (cx, rectTop)
+  //          to each division on the TOP long edge LEFT half (cx - i*dxMajor, rectTop)
+  //   Intersection of line-i from A and line-i from C = point on ellipse.
 
-  /* ─── Steps & Results ─────────────────────────────────────────────── */
-  const stepsList = document.getElementById('steps-list');
-  const steps = [
-    "<strong>Step 1:</strong> Draw the major axis AB = 120 mm and minor axis CD = 70 mm intersecting at O.",
-    "<strong>Step 2:</strong> Construct a bounding rectangle passing through A, B, C, D.",
-    "<strong>Step 3:</strong> Divide the semi-major axis AO and the vertical edge of the rectangle into " + numDivisions + " equal parts.",
-    "<strong>Step 4:</strong> Join C to the points on the vertical edge with straight lines.",
-    "<strong>Step 5:</strong> Join D through the points on AO and extend them to intersect the corresponding lines from C. These intersections are points on the ellipse.",
-    "<strong>Step 6:</strong> Repeat for all four quadrants to complete the curve."
+  const quadrants = [
+    { ax: rectLeft, ay: cy, cx_: cx, cy_: rectTop, edgeXdir: -1, edgeYdir: -1 }, // Top-Left
+    { ax: rectRight, ay: cy, cx_: cx, cy_: rectTop, edgeXdir: 1, edgeYdir: -1 },  // Top-Right
+    { ax: rectRight, ay: cy, cx_: cx, cy_: rectBot, edgeXdir: 1, edgeYdir: 1 },   // Bottom-Right
+    { ax: rectLeft, ay: cy, cx_: cx, cy_: rectBot, edgeXdir: -1, edgeYdir: 1 },    // Bottom-Left
   ];
-  steps.forEach(s => {
-    let li = document.createElement('li'); li.innerHTML = s; stepsList.appendChild(li);
+
+  const allPts = []; // collect all ellipse construction points
+
+  quadrants.forEach(q => {
+    for (let i = 1; i < N; i++) {
+      // Line from A-end (end of major axis) to division i on the near short edge
+      const shortEdgeX = q.ax; // same x as the A-end (on the short edge)
+      const shortEdgeY = cy + q.edgeYdir * i * dyMinor;
+
+      // Line from C-end (end of minor axis) to division i on the near long edge
+      const longEdgeX = cx + q.edgeXdir * i * dxMajor;
+      const longEdgeY = q.cy_; // same y as the C-end (on the long edge)
+
+      // Draw construction lines (faint)
+      line(q.ax, q.ay, shortEdgeX, shortEdgeY, COLOR_CONSTRUCT, 0.5);
+      line(q.cx_, q.cy_, longEdgeX, longEdgeY, COLOR_CONSTRUCT, 0.5);
+
+      // Find intersection of these two lines
+      // Line 1: from (q.ax, q.ay) to (shortEdgeX, shortEdgeY)
+      // Line 2: from (q.cx_, q.cy_) to (longEdgeX, longEdgeY)
+      const x1 = q.ax, y1 = q.ay, x2 = shortEdgeX, y2 = shortEdgeY;
+      const x3 = q.cx_, y3 = q.cy_, x4 = longEdgeX, y4 = longEdgeY;
+
+      const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+      if (Math.abs(denom) > 0.001) {
+        const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+        const ix = x1 + t * (x2 - x1);
+        const iy = y1 + t * (y2 - y1);
+        allPts.push({ x: ix, y: iy });
+        dot(ix, iy, 2.5, COLOR_CURVE);
+      }
+    }
   });
 
-  const resultsDiv = document.getElementById('results');
-  resultsDiv.innerHTML = \`
+  // Add the 4 axis endpoints to the points list for a complete curve
+  allPts.push({ x: rectLeft, y: cy });  // A (left)
+  allPts.push({ x: cx, y: rectTop });   // C (top)
+  allPts.push({ x: rectRight, y: cy }); // B (right)
+  allPts.push({ x: cx, y: rectBot });   // D (bottom)
+
+  /* ─── Draw the smooth ellipse curve through points ────────────── */
+  ctx.beginPath(); ctx.strokeStyle = COLOR_CURVE; ctx.lineWidth = 2.5;
+  for (let theta = 0; theta <= Math.PI * 2 + 0.01; theta += 0.03) {
+    const ex = cx + a * Math.cos(theta);
+    const ey = cy + b * Math.sin(theta);
+    if (theta === 0) ctx.moveTo(ex, ey); else ctx.lineTo(ex, ey);
+  }
+  ctx.closePath(); ctx.stroke();
+
+  /* ─── Axis endpoint labels ────────────────────────────────────── */
+  dot(rectLeft, cy, 4, COLOR_CURVE);  label("A", rectLeft - 16, cy + 5, COLOR_TEXT, 13);
+  dot(rectRight, cy, 4, COLOR_CURVE); label("B", rectRight + 6, cy + 5, COLOR_TEXT, 13);
+  dot(cx, rectTop, 4, COLOR_CURVE);   label("C", cx + 6, rectTop - 6, COLOR_TEXT, 13);
+  dot(cx, rectBot, 4, COLOR_CURVE);   label("D", cx + 6, rectBot + 16, COLOR_TEXT, 13);
+  dot(cx, cy, 3, COLOR_TEXT);         label("O", cx + 6, cy + 14, COLOR_TEXT, 12);
+
+  // Title label
+  label("Ellipse", cx + a/2, rectTop - 30, COLOR_CURVE, 14, 'bold');
+
+  /* ─── Dimensions ──────────────────────────────────────────────── */
+  dim(rectLeft, rectBot, rectRight, rectBot, 35, majorAxis + " mm");
+  dim(rectLeft, rectTop, rectLeft, rectBot, -30, minorAxis + " mm");
+
+  /* ─── Steps ───────────────────────────────────────────────────── */
+  document.getElementById('steps-list').innerHTML = \`
+    <li><strong>Step 1:</strong> Draw the major axis AB = 120 mm horizontally and minor axis CD = 70 mm vertically, intersecting at center O.</li>
+    <li><strong>Step 2:</strong> Construct the bounding rectangle through the endpoints A, B, C, D.</li>
+    <li><strong>Step 3:</strong> Divide the semi-major axis (top edge from O to left rectangle corner) into \${N} equal parts. Number them 1, 2, 3, … from O outward.</li>
+    <li><strong>Step 4:</strong> Divide the semi-minor axis (left edge from O to top rectangle corner) into \${N} equal parts. Number them 1, 2, 3, … from O outward.</li>
+    <li><strong>Step 5:</strong> From point A (end of major axis), draw straight lines to each numbered division on the near short edge (left edge, top half).</li>
+    <li><strong>Step 6:</strong> From point C (end of minor axis), draw straight lines to the same-numbered divisions on the near long edge (top edge, left half).</li>
+    <li><strong>Step 7:</strong> The intersection of line-1 from A with line-1 from C gives point P1 on the ellipse. Similarly for P2, P3, P4.</li>
+    <li><strong>Step 8:</strong> Repeat for all four quadrants by symmetry.</li>
+    <li><strong>Step 9:</strong> Join all intersection points and the axis endpoints A, B, C, D with a smooth freehand curve to complete the ellipse.</li>
+  \`;
+
+  document.getElementById('results').innerHTML = \`
     <div class="result-pill"><strong>\${majorAxis} mm</strong> Major Axis</div>
     <div class="result-pill"><strong>\${minorAxis} mm</strong> Minor Axis</div>
-    <div class="result-pill"><strong>\${(majorAxis/2).toFixed(1)} mm</strong> Semi-major</div>
-    <div class="result-pill"><strong>\${(minorAxis/2).toFixed(1)} mm</strong> Semi-minor</div>
+    <div class="result-pill"><strong>\${N} divisions</strong> per semi-axis</div>
+    <div class="result-pill"><strong>\${4 * (N - 1) + 4} points</strong> plotted</div>
   \`;
 }
 
+/* ─── Responsive Canvas ────────────────────────────────────────────── */
 function resize() {
   const rect = canvas.parentElement.getBoundingClientRect();
   canvas.width = rect.width * window.devicePixelRatio;
