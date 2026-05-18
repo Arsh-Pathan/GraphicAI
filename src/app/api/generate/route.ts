@@ -359,23 +359,27 @@ export async function POST(req: NextRequest) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const userMessage = `Below are FOUR canonical exemplars. Pick the one whose family matches the user's prose (lamina, line, curve, or development) and match its CSS, canvas scale handling, projector logic, vertex labelling, annotation style (arcs, dimensions, locus arcs), and steps card EXACTLY. Only the problem-specific geometry, the problem statement text, and the steps content should change. Do NOT include any multi-problem dropdown — solve only the requested problem.
+  // Simple classification based on keywords to reduce prompt size
+  const promptLower = prompt.toLowerCase();
+  let relevantExemplar = exampleHtml; // Default to lamina
+  let exemplarName = "LAMINA / PLANE FIGURES";
+  
+  if (promptLower.includes("development") || promptLower.includes("lateral surface") || promptLower.includes("unroll")) {
+    relevantExemplar = developmentExampleHtml;
+    exemplarName = "DEVELOPMENT OF SURFACES";
+  } else if (promptLower.includes("ellipse") || promptLower.includes("parabola") || promptLower.includes("hyperbola") || promptLower.includes("cycloid") || promptLower.includes("involute") || promptLower.includes("helix") || promptLower.includes("spiral")) {
+    relevantExemplar = curveExampleHtml;
+    exemplarName = "ENGINEERING CURVES";
+  } else if (promptLower.includes("line") || promptLower.includes("true length") || promptLower.includes("projector distance") || promptLower.includes("above hp") || promptLower.includes("in front of vp")) {
+    relevantExemplar = lineExampleHtml;
+    exemplarName = "LINE PROJECTION";
+  }
 
-═══ EXEMPLAR A · LAMINA / PLANE FIGURES ═══
-${exampleHtml}
-═══ END EXEMPLAR A ═══
+  const userMessage = `Below is the canonical exemplar for ${exemplarName} problems. Match its CSS, canvas scale handling, projector logic, vertex labelling, annotation style (arcs, dimensions, locus arcs), and steps card EXACTLY. Only the problem-specific geometry, the problem statement text, and the steps content should change. Do NOT include any multi-problem dropdown — solve only the requested problem.
 
-═══ EXEMPLAR B · LINE PROJECTION ═══
-${lineExampleHtml}
-═══ END EXEMPLAR B ═══
-
-═══ EXEMPLAR C · ENGINEERING CURVES ═══
-${curveExampleHtml}
-═══ END EXEMPLAR C ═══
-
-═══ EXEMPLAR D · DEVELOPMENT OF SURFACES ═══
-${developmentExampleHtml}
-═══ END EXEMPLAR D ═══
+═══ EXEMPLAR · ${exemplarName} ═══
+${relevantExemplar}
+═══ END EXEMPLAR ═══
 
 Now produce the complete single-file HTML solution for ONLY this problem:
 
