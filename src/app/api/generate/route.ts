@@ -14,8 +14,8 @@ export const maxDuration = 60;
  * exemplar (which itself is ~20KB of HTML). gemini-2.5-flash is the fallback
  * for BYOK users on the free tier.
  */
-const PRIMARY_MODEL = "gemini-2.5-pro";
-const FALLBACK_MODEL = "gemini-2.5-flash";
+const PRIMARY_MODEL = "gemini-2.5-flash";
+const FALLBACK_MODEL = "gemini-2.5-pro";
 
 /* ────────────────────────────────────────────────────────────────────────
  * SYSTEM INSTRUCTION
