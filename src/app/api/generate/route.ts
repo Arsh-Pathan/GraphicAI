@@ -12,10 +12,8 @@ export const maxDuration = 60;
  * Best Gemini model for long, deterministic code generation in 2026.
  * gemini-2.5-pro: strongest reasoning + 1M context, ideal for our few-shot
  * exemplar (which itself is ~20KB of HTML). gemini-2.5-flash is the fallback
- * for BYOK users on the free tier.
- */
-const PRIMARY_MODEL = "gemini-2.5-flash";
-const FALLBACK_MODEL = "gemini-2.5-pro";
+const PRIMARY_MODEL = "gemini-3.5-flash";
+const FALLBACK_MODEL = "gemini-3.5-pro";
 
 /* ────────────────────────────────────────────────────────────────────────
  * SYSTEM INSTRUCTION

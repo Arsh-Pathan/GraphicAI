@@ -59,6 +59,10 @@ export default function GeneratePage() {
         headers,
         body: JSON.stringify({ prompt }),
       });
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("The server encountered an error and could not return the graphic.");
+      }
       const data = await res.json();
 
       if (!res.ok) {
@@ -126,7 +130,7 @@ export default function GeneratePage() {
         <div className="hidden md:flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.2em] text-pencil">
           <span>Method: <span className="text-ink">First Angle</span></span>
           <span>Scale: <span className="text-ink">1 : 1</span></span>
-          <span>Engine: <span className="text-ink">Gemini · 2.5 Pro</span></span>
+          <span>Engine: <span className="text-ink">Gemini · 3.5 Pro</span></span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -490,7 +494,7 @@ function KeyPanel({
               <KeyStep
                 index="03"
                 title="Copy the key"
-                body="Click the copy button next to the freshly generated key. The free tier is generous — 15 RPM, 1500 requests/day on Gemini 2.5 Flash."
+                body="Click the copy button next to the freshly generated key. The free tier is generous — 15 RPM, 1500 requests/day on Gemini 3.5 Flash."
               />
               <KeyStep
                 index="04"
