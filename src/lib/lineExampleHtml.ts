@@ -224,8 +224,8 @@ function render(){
   const max_len = Math.max(TV_len, FV_len);
   const max_h = Math.max(mAboveHP, nAboveHP) + Math.max(mInFrontVP, nInFrontVP);
   
-  const scaleX = (cw - 150) / max_len; // 150px total horizontal margin
-  const scaleY = (ch - 150) / max_h;   // 150px total vertical margin
+  const scaleX = (cw - 250) / max_len; // 250px total horizontal margin
+  const scaleY = (ch - 250) / max_h;   // 250px total vertical margin
   const scale = Math.min(scaleX, scaleY, 4.0); // allow small problems to scale up relatively
   
   // Center geometry perfectly: 

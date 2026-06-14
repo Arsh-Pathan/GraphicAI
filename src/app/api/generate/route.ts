@@ -12,6 +12,7 @@ export const maxDuration = 60;
  * Best Gemini model for long, deterministic code generation in 2026.
  * gemini-2.5-pro: strongest reasoning + 1M context, ideal for our few-shot
  * exemplar (which itself is ~20KB of HTML). gemini-2.5-flash is the fallback
+ */
 const MODELS = [
   "gemini-3.5-flash",
   "gemini-3.5-pro",
@@ -421,7 +422,76 @@ Now produce the complete single-file HTML solution for ONLY this problem:
     const { response, modelUsed } = await tryModels();
 
     const raw = response.text || "";
-    const html = stripFences(raw);
+    let html = stripFences(raw);
+
+    const panZoomScript = `
+<script>
+  setTimeout(() => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas) return;
+    const container = canvas.parentElement;
+    
+    let scale = 1;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let startX, startY;
+    
+    container.style.overflow = 'hidden';
+    container.style.cursor = 'grab';
+    container.style.position = 'relative';
+    
+    canvas.style.transformOrigin = '0 0';
+    canvas.style.transition = 'transform 0.1s ease-out';
+    
+    function updateTransform() {
+      canvas.style.transform = \\\`translate(\\\${panX}px, \\\${panY}px) scale(\\\${scale})\\\`;
+    }
+    
+    container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomSensitivity = 0.002;
+      const delta = -e.deltaY;
+      const zoomFactor = Math.exp(delta * zoomSensitivity);
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      panX = mouseX - (mouseX - panX) * zoomFactor;
+      panY = mouseY - (mouseY - panY) * zoomFactor;
+      scale *= zoomFactor;
+      scale = Math.max(0.1, Math.min(scale, 15));
+      updateTransform();
+    }, { passive: false });
+    
+    container.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX - panX;
+      startY = e.clientY - panY;
+      container.style.cursor = 'grabbing';
+      canvas.style.transition = 'none';
+    });
+    
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+      container.style.cursor = 'grab';
+      canvas.style.transition = 'transform 0.1s ease-out';
+    });
+    
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      updateTransform();
+    });
+    
+    container.addEventListener('dblclick', () => {
+      scale = 1; panX = 0; panY = 0;
+      canvas.style.transition = 'transform 0.2s ease-out';
+      updateTransform();
+    });
+  }, 100);
+</script>
+`;
 
     if (!html || !html.toLowerCase().includes("<!doctype html")) {
       return NextResponse.json(
@@ -433,6 +503,8 @@ Now produce the complete single-file HTML solution for ONLY this problem:
         { status: 502 }
       );
     }
+
+    html = html.replace(/<\/body>/i, panZoomScript + "\n</body>");
 
     return NextResponse.json({
       html,

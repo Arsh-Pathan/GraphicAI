@@ -22,6 +22,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: "GraphicAI — A drafting machine for engineering students",
   description:
     "Type the problem. Get the projection. GraphicAI calculates rotation matrices and renders first-angle blueprints in the way your professor expects.",
