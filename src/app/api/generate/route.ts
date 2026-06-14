@@ -12,8 +12,14 @@ export const maxDuration = 60;
  * Best Gemini model for long, deterministic code generation in 2026.
  * gemini-2.5-pro: strongest reasoning + 1M context, ideal for our few-shot
  * exemplar (which itself is ~20KB of HTML). gemini-2.5-flash is the fallback
-const PRIMARY_MODEL = "gemini-3.5-flash";
-const FALLBACK_MODEL = "gemini-3.5-pro";
+const MODELS = [
+  "gemini-3.5-flash",
+  "gemini-3.5-pro",
+  "gemini-3.1-flash",
+  "gemini-3.1-pro",
+  "gemini-2.5-flash",
+  "gemini-2.5-pro"
+];
 
 /* ────────────────────────────────────────────────────────────────────────
  * SYSTEM INSTRUCTION
@@ -383,41 +389,36 @@ Now produce the complete single-file HTML solution for ONLY this problem:
 
 "${prompt}"`;
 
-  // Choose model: server key gets the strong model; BYOK users get flash by
-  // default since their personal keys typically sit on the free tier with
-  // a tighter Pro RPM budget.
-  const primary = usingUserKey ? FALLBACK_MODEL : PRIMARY_MODEL;
-  const secondary = usingUserKey ? PRIMARY_MODEL : FALLBACK_MODEL;
-
-  async function callModel(model: string) {
-    return ai.models.generateContent({
-      model,
-      contents: userMessage,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.15,
-        maxOutputTokens: 65536,
-      },
-    });
+  async function tryModels() {
+    let lastError;
+    // Iterate through models, allowing fallback on quota, not found, or internal errors
+    for (const model of MODELS) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: userMessage,
+          config: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+            temperature: 0.15,
+            maxOutputTokens: 65536,
+          },
+        });
+        return { response, modelUsed: model };
+      } catch (err) {
+        lastError = err;
+        if (isAuthError(err)) {
+          // Do not fallback on auth error
+          throw err;
+        }
+        // If it's a quota error, not found, or other issue, try the next model.
+        console.warn(`Model ${model} failed, falling back...`);
+      }
+    }
+    throw lastError;
   }
 
   try {
-    let response;
-    try {
-      response = await callModel(primary);
-    } catch (primaryErr) {
-      // If the primary model is rate-limited, try the other tier once before
-      // giving up — but only when we still have a key to retry with.
-      if (isQuotaError(primaryErr) && !isAuthError(primaryErr)) {
-        try {
-          response = await callModel(secondary);
-        } catch (secondaryErr) {
-          throw secondaryErr;
-        }
-      } else {
-        throw primaryErr;
-      }
-    }
+    const { response, modelUsed } = await tryModels();
 
     const raw = response.text || "";
     const html = stripFences(raw);
@@ -435,7 +436,7 @@ Now produce the complete single-file HTML solution for ONLY this problem:
 
     return NextResponse.json({
       html,
-      model: primary,
+      model: modelUsed,
       usingUserKey,
     });
   } catch (error) {
